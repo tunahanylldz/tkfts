@@ -1,176 +1,725 @@
 <!DOCTYPE html>
-<html lang="tr"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#15171c">
-<title>Hayat Takip</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<title>TKFTS - Kişisel Yönetim Sistemi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 <style>
-:root{--bg:#15171c;--r:#1c1f26;--c:#20232b;--l:#2b2f3a;--t:#eceef2;--d:#9aa1b0;--f:#5d6376;--g:#e0a95e;--p:#5fbf8f;--m:#e0715e;--b:#6ea8ff}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:15px system-ui,sans-serif;padding-bottom:84px}
-main{max-width:760px;margin:0 auto;padding:0 14px}
-header{padding:18px 16px 6px;max-width:760px;margin:0 auto;display:flex;justify-content:space-between;align-items:baseline}
-h1{font-size:1.4rem;margin:0}#cs{font-size:11px}#dl{color:var(--d);font-size:.85rem}
-.tab{display:none}.tab.on{display:block}
-.card{background:var(--c);border:1px solid var(--l);border-radius:14px;padding:14px;margin-bottom:12px}
-h2{font-size:1rem;margin:18px 0 10px;display:flex;justify-content:space-between;align-items:center}h2 small{color:var(--f);font-weight:400}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px 0}
-.stat{background:var(--c);border:1px solid var(--l);border-radius:14px;padding:12px;text-align:center}
-.stat b{display:block;font-size:1.25rem;font-family:ui-monospace,monospace}.stat span{font-size:.68rem;color:var(--d);text-transform:uppercase}
-.row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--l)}.row:last-child{border:0}
-.row .n{font-weight:600;display:flex;align-items:center;gap:8px}.row .s{font-size:.75rem;color:var(--f)}
-.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
-button,.btn{background:var(--g);color:#221a0e;border:0;border-radius:10px;padding:9px 14px;font-weight:600;cursor:pointer;font-size:.85rem}
-button.gh{background:none;border:1px solid var(--l);color:var(--t)}button.dg{background:var(--m);color:#2a0f0a}button.x{background:none;color:var(--f);padding:2px 8px}
-input,select{background:var(--bg);border:1px solid var(--l);color:var(--t);border-radius:9px;padding:9px 10px;font-size:.9rem;width:100%}
-input[type=color]{padding:0;height:38px}input[type=file]{display:none}
-label{font-size:.75rem;color:var(--d);display:block;margin:8px 0 4px}
-.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.tick{width:34px;height:34px;border-radius:50%;border:2px solid var(--l);background:none;color:#fff;font-size:1rem;padding:0}.tick.on{background:var(--p);border-color:var(--p)}
-.inl{display:flex;gap:6px;align-items:center}.inl input{width:80px}
-.bar{height:6px;background:var(--l);border-radius:4px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:var(--p)}
-.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.cd{aspect-ratio:1;border-radius:9px;border:1px solid var(--l);background:var(--c);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.7rem;cursor:pointer;color:var(--d)}
-.cd.td{border-color:var(--g)}.cd small{font-size:.58rem;color:var(--b)}.dw{text-align:center;font-size:.7rem;color:var(--f)}
-.seg{display:flex;background:var(--r);border-radius:10px;padding:3px;margin-bottom:12px}.seg button{flex:1;background:none;color:var(--d)}.seg button.on{background:var(--g);color:#221a0e}
-.hm{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,11px);gap:3px;overflow-x:auto;padding-bottom:4px}.hm i{width:11px;height:11px;border-radius:2px;background:var(--l)}
-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(28,31,38,.95);border-top:1px solid var(--l);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
-nav button{flex:1;background:none;color:var(--f);font-size:.68rem;padding:8px 2px}nav button.on{color:var(--g)}
-.pos{color:var(--p)}.neg{color:var(--m)}.empty{color:var(--f);text-align:center;padding:16px;font-size:.85rem}
-.rem{border-left:4px solid var(--g);padding:6px 10px;margin-bottom:6px;background:var(--r);border-radius:8px;font-size:.85rem}
-</style></head><body>
-<header><h1>Hayat Takip</h1><div><div id="dl"></div><div id="cs"></div></div></header>
-<main>
-<section class="tab on" id="t-today">
- <div class="grid3"><div class="stat"><b id="s1">0/0</b><span>hedef</span></div><div class="stat"><b id="s2">0 dk</b><span>bugünkü süre</span></div><div class="stat"><b id="s3">₺0</b><span>bugünkü harcama</span></div></div>
- <div id="rems"></div>
- <h2>Günlük hedefler</h2><div class="card" id="goals"></div>
- <h2>Bugünün harcamaları</h2><div class="card" id="tex"></div>
-</section>
-<section class="tab" id="t-exp">
- <div class="card"><h2 style="margin-top:0">Harcama ekle</h2>
- <label>Kategori</label><select id="e-cat"></select>
- <div class="f2"><div><label>Tutar (₺)</label><input id="e-amt" type="number" step="0.01" inputmode="decimal"></div><div><label>Bana düşen pay %</label><input id="e-pct" type="number" value="100" min="1" max="100"></div></div>
- <label>Not</label><input id="e-note" placeholder="opsiyonel"><br><br><button onclick="addExp()" style="width:100%">Ekle</button></div>
- <h2>Geçmiş <small>son 100</small></h2><div class="card" id="exlog"></div>
-</section>
-<section class="tab" id="t-cal">
- <div class="row" style="border:0"><b id="cm"></b><div><button class="gh" onclick="cmv(-1)">‹</button> <button class="gh" onclick="cmv(0)">bugün</button> <button class="gh" onclick="cmv(1)">›</button></div></div>
- <div class="cal" id="cal"></div><div class="card" id="dp" style="display:none;margin-top:12px"></div>
-</section>
-<section class="tab" id="t-ins">
- <div class="card"><label>Kategori</label><select id="i-cat" onchange="renIns()"></select><label>Açıklamada ara</label><input id="i-q" oninput="renIns()" placeholder="Migros, fatura…"></div>
- <div id="i-m" class="grid3" style="display:none;grid-template-columns:repeat(2,1fr)"></div>
- <div class="card" id="i-l"><div class="empty">Kategori seç.</div></div>
-</section>
-<section class="tab" id="t-an">
- <div class="seg" id="rg"><button data-r="7">7 gün</button><button data-r="30" class="on">30 gün</button><button data-r="90">90 gün</button></div>
- <div class="grid3" id="am"></div><div class="card"><b>Süre hedefleri (dk/gün)</b><canvas id="c1" height="190"></canvas></div>
- <div class="card"><b>Hedef tamamlama (%)</b><canvas id="c2" height="170"></canvas></div>
- <div class="card"><b>Günlük harcama (₺)</b><canvas id="c3" height="170"></canvas></div>
- <div class="card"><b>Kategori dağılımı</b><canvas id="c4" height="200"></canvas></div>
- <div class="card"><div class="row" style="border:0;padding:0"><b>Alt kategori detayı</b><select id="a-mc" onchange="renAn()" style="width:auto"></select></div><canvas id="c5" height="200"></canvas></div>
- <h2>Seriler ve ısı haritası <small>son 18 hafta</small></h2><div id="hms"></div>
-</section>
-<section class="tab" id="t-set">
- <div class="card"><h2 style="margin-top:0">Yeni hedef</h2>
- <label>Ad</label><input id="g-n" placeholder="örn. Kitap okuma">
- <div class="f2"><div><label>Tür</label><select id="g-t"><option value="time">Süre (dk)</option><option value="tick">Tick (yaptım)</option><option value="count">Sayaç</option></select></div><div><label>Renk</label><input id="g-c" type="color" value="#6ea8ff"></div></div><br><button onclick="addGoal()">Hedef ekle</button><div id="gl" style="margin-top:10px"></div></div>
- <div class="card"><h2 style="margin-top:0">Kategori</h2>
- <div class="f2"><div><label>Ad</label><input id="k-n"></div><div><label>Üst kategori</label><select id="k-p"></select></div></div>
- <label>Aylık limit ₺ (opsiyonel)</label><input id="k-b" type="number" min="0"><label>Renk (ana kategori)</label><input id="k-c" type="color" value="#e0715e"><br><br><button onclick="addCat()">Kategori ekle</button><div id="kl" style="margin-top:10px"></div></div>
- <div class="card"><h2 style="margin-top:0">Kredi kartı ödeme günü</h2>
- <div class="f2"><div><label>Kart</label><input id="cc-n"></div><div><label>Gün (1-31)</label><input id="cc-d" type="number" min="1" max="31"></div><div><label>Renk</label><input id="cc-c" type="color" value="#e0715e"></div></div><br><button onclick="addCC()">Kart ekle</button><div id="ccl"></div></div>
- <div class="card"><h2 style="margin-top:0">Taksit / sabit gider</h2>
- <div class="f2"><div><label>Ad</label><input id="p-n"></div><div><label>Aylık tutar</label><input id="p-a" type="number"></div><div><label>Gün</label><input id="p-d" type="number" min="1" max="31"></div><div><label>Taksit sayısı (boş=sabit)</label><input id="p-c" type="number"></div></div>
- <label>Kategorisizse renk</label><input id="p-col" type="color" value="#6b6b67"><label>Kategori</label><select id="p-k"></select><br><br><button onclick="addFix()">Tanımla</button><div id="pl"></div></div>
- <div class="card"><h2 style="margin-top:0">Yedek</h2><div class="inl"><button class="gh" onclick="expJ()">JSON indir</button><label class="btn gh" style="margin:0">JSON yükle<input type="file" accept=".json" onchange="impJ(event)"></label><button class="dg" onclick="rst()">Sıfırla</button></div></div>
-</section>
-</main>
-<nav id="nav"><button data-t="today" class="on">● Bugün</button><button data-t="exp">₺ Harcama</button><button data-t="cal">▦ Takvim</button><button data-t="ins">🔍 İnceleme</button><button data-t="an">◤ Analiz</button><button data-t="set">⚙ Ayarlar</button></nav>
+:root {
+  --bg: #15171c; --bg-raised: #1c1f26; --bg-card: #20232b;
+  --line: #2b2f3a; --text: #eceef2; --text-dim: #9aa1b0; --text-faint: #5d6376;
+  --green: #1D9E75; --red: #e0715e; --blue: #8b93ff; --gold: #e0a95e; --amber: #EF9F27;
+  --r: 12px; --rm: 8px; --gap: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+.shell { max-width: 1000px; margin: 0 auto; padding: 1.5rem 1rem; }
+header { background: var(--bg-card); border-radius: var(--r); border: 1px solid var(--line); padding: 1.25rem 1.5rem; margin-bottom: 1rem; text-align: center; }
+.app-title { font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.5px; }
+
+nav { display: flex; gap: 4px; flex-wrap: wrap; background: var(--bg-card); border-radius: var(--r); border: 1px solid var(--line); padding: 6px; margin-bottom: 1rem; }
+.nav-btn { flex: 1; text-align: center; padding: 9px 8px; border: none; background: none; border-radius: var(--rm); cursor: pointer; font-size: 13px; color: var(--text-dim); font-family: inherit; transition: all .2s; white-space: nowrap; font-weight: 500; }
+.nav-btn:hover { background: var(--bg-raised); color: var(--text); }
+.nav-btn.active { background: var(--gold); color: #15171c; font-weight: 600; }
+.page { display: none; animation: fade .25s ease; }
+.page.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.card { background: var(--bg-card); border: 1px solid var(--line); border-radius: var(--r); padding: 1.25rem 1.5rem; margin-bottom: var(--gap); }
+.section-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--text); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+
+.metric-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); margin-bottom: 1rem; }
+@media(max-width:768px) { .metric-grid { grid-template-columns: repeat(1, 1fr); } }
+.metric { background: var(--bg-raised); border-radius: var(--rm); padding: 1.25rem 1rem; text-align: center; border: 1px solid var(--line); }
+.metric-label { font-size: 12px; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; font-weight: 500; }
+.metric-val { font-size: 22px; font-weight: 700; color: var(--text); }
+.metric-val.money { color: var(--red); }
+.metric-val.time { color: var(--green); }
+.metric-val.gold { color: var(--gold); }
+
+.btn { padding: 8px 14px; border: 1px solid var(--line); border-radius: var(--rm); background: var(--bg-raised); color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all .15s; }
+.btn:hover { filter: brightness(1.2); }
+.btn-primary { background: var(--gold); color: #15171c; border-color: var(--gold); font-weight: 600; }
+.btn-danger { background: rgba(224, 113, 94, 0.1); border-color: var(--red); color: var(--red); }
+.btn-success { background: rgba(29, 158, 117, 0.1); border-color: var(--green); color: var(--green); }
+
+input, select { border: 1px solid var(--line); border-radius: var(--rm); padding: 9px 12px; font-size: 14px; background: var(--bg); color: var(--text); font-family: inherit; width: 100%; outline: none; transition: border-color .2s; }
+input:focus, select:focus { border-color: var(--gold); }
+input[type="color"] { padding: 0; height: 42px; width: 100%; border: none; border-radius: var(--rm); cursor: pointer; display: block; background: none; }
+
+.form-row { display: grid; gap: 12px; margin-bottom: 14px; }
+.form-row.c2 { grid-template-columns: 1fr 1fr; }
+.form-row.c3 { grid-template-columns: 1fr 1fr 1fr; }
+@media(max-width:600px) { .form-row.c2, .form-row.c3 { grid-template-columns: 1fr; } }
+label { font-size: 13px; font-weight: 500; color: var(--text-dim); margin-bottom: 5px; display: block; }
+.hint { font-size: 12px; color: var(--text-faint); margin-top: 4px; }
+
+/* Log Listeleri */
+.log-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--line); gap: 8px; }
+.log-row:last-child { border-bottom: none; }
+.log-info { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow: hidden; }
+.log-cat { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+.color-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.log-note { font-size: 12px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.log-right { text-align: right; white-space: nowrap; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; min-width: 70px; }
+.log-amt { font-size: 15px; font-weight: 600; color: var(--text); }
+.log-date { font-size: 11px; color: var(--text-faint); }
+.empty { color: var(--text-faint); font-size: 14px; padding: 2rem 0; text-align: center; font-style: italic; }
+
+/* Hedef ve Tick Satırları */
+.habit-row { display: flex; justify-content: space-between; align-items: center; background: var(--bg-raised); border: 1px solid var(--line); padding: 12px; border-radius: var(--rm); margin-bottom: 8px; }
+.habit-title { font-weight: 600; font-size: 14px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.habit-actions { display: flex; align-items: center; gap: 8px; }
+.habit-input { width: 70px; text-align: center; }
+.custom-checkbox { width: 22px; height: 22px; cursor: pointer; accent-color: var(--green); }
+
+/* Takvim */
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.cal-head { text-align: center; font-size: 12px; font-weight: 600; color: var(--text-dim); padding-bottom: 6px; }
+.cal-day { background: var(--bg-raised); border: 1px solid var(--line); border-radius: var(--rm); padding: 6px; min-height: 80px; display: flex; flex-direction: column; gap: 2px; }
+.cal-day.past { opacity: 0.7; }
+.cal-day.today { border: 1px solid var(--gold); }
+.cal-num { font-size: 13px; font-weight: 600; color: var(--text-dim); margin-bottom: 4px; text-align: right; }
+.cal-event { font-size: 11px; padding: 4px; border-radius: 3px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+.cal-dot-container { display: flex; gap: 3px; justify-content: flex-end; margin-top: auto; }
+.cal-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+.chart-wrap { position: relative; width: 100%; height: 260px; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<header>
+  <div class="app-title">Tunahan Yönetim Sistemi <span id="cloud-status" style="font-size:11px;color:var(--gold);vertical-align:middle;margin-left:5px;">(Bağlanıyor...)</span></div>
+</header>
+
+<nav>
+  <button class="nav-btn active" onclick="switchTab('dashboard',this)">Özet (Bugün)</button>
+  <button class="nav-btn" onclick="switchTab('habits',this)">Zaman & Hedefler</button>
+  <button class="nav-btn" onclick="switchTab('finance',this)">Finans</button>
+  <button class="nav-btn" onclick="switchTab('calendar',this)">Takvim & Ödemeler</button>
+  <button class="nav-btn" onclick="switchTab('stats',this)">Grafikler</button>
+  <button class="nav-btn" onclick="switchTab('manage',this)">Ayarlar</button>
+</nav>
+
+<!-- ÖZET EKRANI -->
+<div id="page-dashboard" class="page active">
+  <div id="reminder-panel"></div>
+  <div class="metric-grid">
+    <div class="metric"><div class="metric-label">Bugünkü Harcama</div><div class="metric-val money" id="dash-exp">₺0</div></div>
+    <div class="metric"><div class="metric-label">Verimli Süre (Bugün)</div><div class="metric-val time" id="dash-time">0 Dk</div></div>
+    <div class="metric"><div class="metric-label">Günlük Onaylar</div><div class="metric-val gold" id="dash-ticks">0 / 0</div></div>
+  </div>
+  
+  <div class="form-row c2">
+    <div class="card" style="margin-bottom:0">
+      <div class="section-title">Son Harcamalar</div>
+      <div id="recent-exp-log"><div class="empty">Yükleniyor...</div></div>
+    </div>
+    <div class="card" style="margin-bottom:0">
+      <div class="section-title">Bugün Kaydedilen Hedefler</div>
+      <div id="recent-habit-log"><div class="empty">Bugün hedef kaydı yok.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ZAMAN & HEDEFLER -->
+<div id="page-habits" class="page">
+  <div class="card">
+    <div class="section-title">Süreli Hedefler (Dakika Ekle)</div>
+    <div id="time-habits-list"><div class="empty">Ayarlar sekmesinden süreli hedef ekleyin.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Günlük Onaylar (Tick)</div>
+    <div id="tick-habits-list"><div class="empty">Ayarlar sekmesinden onaylı hedef ekleyin.</div></div>
+  </div>
+</div>
+
+<!-- FİNANS -->
+<div id="page-finance" class="page">
+  <div class="card">
+    <div class="section-title">Yeni Harcama Ekle</div>
+    <div class="form-row c2">
+      <div><label>Kategori</label><select id="fin-cat"><option value="">Seç...</option></select></div>
+      <div><label>Not / Açıklama</label><input type="text" id="fin-note" placeholder="Opsiyonel"></div>
+    </div>
+    <div class="form-row c2">
+      <div><label>Fiş Tutarı (₺)</label><input type="number" id="fin-amount" placeholder="0.00" min="0" step="0.01"></div>
+      <div><label>Bana Düşen Pay (%)</label><input type="number" id="fin-pct" value="100" min="1" max="100"></div>
+    </div>
+    <button class="btn btn-primary" id="add-exp-btn" onclick="addExpense()">Harcamayı Ekle</button>
+  </div>
+  <div class="card">
+    <div class="section-title">Tüm Harcama Geçmişi</div>
+    <div id="full-expense-log"></div>
+  </div>
+</div>
+
+<!-- TAKVİM VE ÖDEMELER -->
+<div id="page-calendar" class="page">
+  <div class="card">
+    <div class="section-title" id="cal-title">Ödeme & Verim Takvimi</div>
+    <div class="hint" style="margin-bottom:10px; display:flex; gap:10px;">
+      <span><span class="color-dot" style="background:var(--green)"></span> Süre/Tick İşlendi</span>
+      <span><span class="color-dot" style="background:var(--red)"></span> Harcama Yapıldı</span>
+    </div>
+    <div class="cal-grid" id="calendar-header">
+      <div class="cal-head">Pzt</div><div class="cal-head">Sal</div><div class="cal-head">Çar</div>
+      <div class="cal-head">Per</div><div class="cal-head">Cum</div><div class="cal-head">Cmt</div><div class="cal-head">Paz</div>
+    </div>
+    <div class="cal-grid" id="calendar-body"></div>
+  </div>
+
+  <div class="form-row c2">
+    <div class="card" style="margin-bottom:0">
+      <div class="section-title">Kredi Kartı Ödeme Günü</div>
+      <div class="form-row c3" style="grid-template-columns: 2fr 1fr 1fr;">
+        <div><label>Kart Adı</label><input type="text" id="cc-name" placeholder="Örn: Garanti"></div>
+        <div><label>Gün</label><input type="number" id="cc-day" placeholder="1-31" min="1" max="31"></div>
+        <div><label>Renk</label><input type="color" id="cc-color" value="#e0715e"></div>
+      </div>
+      <button class="btn btn-primary" onclick="addCCReminder()" style="margin-top:10px">Kart Ekle</button>
+      <div id="cc-list" style="margin-top:15px"></div>
+    </div>
+    
+    <div class="card" style="margin-bottom:0">
+      <div class="section-title">Taksit / Sabit Gider Ekle</div>
+      <div class="form-row c2">
+        <div><label>Ödeme Adı</label><input type="text" id="pay-name" placeholder="Örn: Netflix"></div>
+        <div><label>Aylık (₺)</label><input type="number" id="pay-amount" placeholder="0"></div>
+      </div>
+      <div class="form-row c2">
+        <div><label>Ödeme Günü</label><input type="number" id="pay-day" placeholder="1-31"></div>
+        <div><label>Kategori</label><select id="pay-cat"><option value="">Kategorisiz</option></select></div>
+      </div>
+      <button class="btn btn-primary" onclick="addFixedPayment()" style="margin-top:10px">Ödeme Tanımla</button>
+      <div id="active-payments-list" style="margin-top:15px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- GRAFİKLER -->
+<div id="page-stats" class="page">
+  <div class="card">
+    <div class="section-title">Son 14 Gün: Harcama (₺) ve Süre (Dk) Trendi</div>
+    <div class="chart-wrap">
+      <canvas id="trend-chart"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-title">Harcama Kategori Dağılımı</div>
+    <div class="chart-wrap">
+      <canvas id="doughnut-chart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- AYARLAR & YÖNETİM -->
+<div id="page-manage" class="page">
+  <div class="form-row c2">
+    <!-- Finans Kategorileri -->
+    <div class="card" style="margin-bottom:0">
+      <div class="section-title">Finans Kategorisi Yönetimi</div>
+      <div class="form-row">
+        <div><label>Ad</label><input type="text" id="cat-name" placeholder="Örn: Market"></div>
+        <div><label>Renk</label><input type="color" id="cat-color" value="#e0a95e"></div>
+      </div>
+      <button class="btn btn-primary" onclick="addCategory()">Kategori Ekle</button>
+      <div id="category-manage-list" style="margin-top:15px"></div>
+    </div>
+
+    <!-- Hedef/Zaman Kategorileri -->
+    <div class="card" style="margin-bottom:0">
+      <div class="section-title">Zaman ve Hedef Yönetimi</div>
+      <div class="form-row">
+        <div><label>Hedef Adı</label><input type="text" id="habit-name" placeholder="Örn: Kitap Okuma"></div>
+        <div><label>Tür</label>
+          <select id="habit-type">
+            <option value="time">Süreli (Dakika Kaydı)</option>
+            <option value="tick">Onaylı (Sadece Checkbox)</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addHabit()">Hedef Ekle</button>
+      <div id="habit-manage-list" style="margin-top:15px"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:var(--gap)">
+    <div class="section-title">Veri Yedekleme ve Sıfırlama</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn" onclick="exportData()">Verileri İndir (JSON)</button>
+      <label class="btn" style="cursor:pointer">Veri Yükle<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+      <button class="btn btn-danger" onclick="resetData()">Tüm Verileri Sil</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
 <script>
-const FB={apiKey:"AIzaSyCa_0eQqJn6q5CKPsn8SHGUpGc7NsLY85c",authDomain:"tkfts-57277.firebaseapp.com",projectId:"tkfts-57277",storageBucket:"tkfts-57277.firebasestorage.app",messagingSenderId:"100556671492",appId:"1:100556671492:web:9ac338008a46300a840351"};
-let docRef=null;try{firebase.initializeApp(FB);docRef=firebase.firestore().collection("tkfts_users").doc("tunahan_hayat_takip")}catch(e){}
-let S={goals:[],logs:[],cats:[],exps:[],cards:[],fixed:[]};
-const $=i=>document.getElementById(i),pad=n=>String(n).padStart(2,'0'),fd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),TD=()=>fd(new Date()),pd=s=>{const a=s.split('-').map(Number);return new Date(a[0],a[1]-1,a[2])},ad=(d,n)=>{const r=new Date(d);r.setDate(r.getDate()+n);return r},uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),r2=n=>Math.round(n*100)/100,tl=d=>pd(d).toLocaleDateString('tr-TR',{weekday:'long',day:'numeric',month:'long'});
-const days=n=>{const a=[];for(let i=n-1;i>=0;i--)a.push(fd(ad(new Date(),-i)));return a};
-let st;function setSt(t,c){const e=$('cs');e.textContent=t;e.style.color=c}
-function save(){try{localStorage.setItem('ht_bk',JSON.stringify(S))}catch(e){}if(!docRef)return setSt('● yerel','var(--g)');clearTimeout(st);setSt('kaydediliyor…','var(--g)');st=setTimeout(async()=>{try{await docRef.set(S);setSt('● bulut güncel','var(--p)')}catch(e){setSt('● çevrimdışı','var(--m)')}},400)}
-async function load(){try{if(docRef){const d=await docRef.get();if(d.exists)S=d.data();setSt('● bulut güncel','var(--p)')}else throw 0}catch(e){try{const b=localStorage.getItem('ht_bk');if(b)S=JSON.parse(b)}catch(x){}setSt('● yerel veri','var(--g)')}
- for(const k of['goals','logs','cats','exps','cards','fixed'])S[k]=S[k]||[];procFixed();all()}
-function procFixed(){const n=new Date(),key=n.getFullYear()+'-'+pad(n.getMonth()+1);let ch=0;S.fixed.forEach(f=>{if(n.getDate()>=f.day&&!S.exps.some(e=>e.fid===f.id&&e.pm===key)){S.exps.push({id:uid(),catId:f.catId||null,amount:f.amount,note:f.name+' (otomatik)',date:fd(new Date(n.getFullYear(),n.getMonth(),f.day)),fid:f.id,pm:key});if(f.count)f.count--;ch=1}});const l=S.fixed.length;S.fixed=S.fixed.filter(f=>!f.count&&f.count!==0||f.count>0);if(ch||l!==S.fixed.length)save()}
-const gv=(g,d)=>S.logs.filter(l=>l.g===g&&l.d===d).reduce((a,l)=>a+l.v,0);
-const done=(g,d)=>gv(g.id,d)>0;
-const dayPct=d=>S.goals.length?S.goals.filter(g=>done(g,d)).length/S.goals.length:0;
-const exDay=d=>r2(S.exps.filter(e=>e.date===d).reduce((a,e)=>a+e.amount,0));
-const top=id=>{const c=S.cats.find(x=>x.id===id);if(!c)return null;return c.parent?S.cats.find(x=>x.id===c.parent)||c:c};
-const fcol=f=>f.catId?cc(f.catId):(f.color||'#6b6b67'),payDots=dn=>{const a=[...S.cards.filter(c=>c.day===dn).map(c=>c.color||'#e0715e'),...S.fixed.filter(f=>f.day===dn).map(fcol)];return a.length?'<span>'+a.map(c=>`<i class="dot" style="background:${c};width:6px;height:6px;margin:0 1px"></i>`).join('')+'</span>':''},cc=id=>(top(id)||{}).color||'#6b6b67',cn=id=>id?(S.cats.find(c=>c.id===id)||{name:'Silinmiş'}).name:'Kategorisiz';
-function streak(g){let d=new Date(),n=0;if(!done(g,fd(d)))d=ad(d,-1);while(done(g,fd(d))){n++;d=ad(d,-1)}return n}
-function tick(id){const t=TD(),i=S.logs.findIndex(l=>l.g===id&&l.d===t);if(i>=0)S.logs.splice(i,1);else S.logs.push({id:uid(),g:id,d:t,v:1});save();all()}
-function addT(id,inp){const v=parseFloat(String($(inp).value).replace(',','.'));if(!v)return;S.logs.push({id:uid(),g:id,d:TD(),v});save();all()}
-function cnt(id,n){S.logs.push({id:uid(),g:id,d:TD(),v:n});save();all()}
-function undo(id){const t=TD();for(let i=S.logs.length-1;i>=0;i--)if(S.logs[i].g===id&&S.logs[i].d===t){S.logs.splice(i,1);break}save();all()}
-function renToday(){$('dl').textContent=tl(TD());const t=TD();
- $('s1').textContent=S.goals.filter(g=>done(g,t)).length+'/'+S.goals.length;
- $('s2').textContent=S.goals.filter(g=>g.type==='time').reduce((a,g)=>a+gv(g.id,t),0)+' dk';$('s3').textContent='₺'+exDay(t).toFixed(2);
- $('goals').innerHTML=S.goals.length?S.goals.map(g=>{const v=gv(g.id,t),sk=streak(g);let ctl='';
-  if(g.type==='tick')ctl=`<button class="tick ${v?'on':''}" onclick="tick('${g.id}')">${v?'✓':''}</button>`;
-  else if(g.type==='time')ctl=`<div class="inl"><input id="in-${g.id}" type="text" inputmode="decimal" placeholder="dk"><button onclick="addT('${g.id}','in-${g.id}')">Ekle</button></div>`;
-  else ctl=`<div class="inl"><button class="gh" onclick="undo('${g.id}')">−</button><button onclick="cnt('${g.id}',1)">+1</button></div>`;
-  return `<div class="row"><div><div class="n"><span class="dot" style="background:${g.color}"></span>${esc(g.name)}</div><div class="s">${g.type==='time'?'bugün '+v+' dk':g.type==='count'?'bugün '+v+' adet':v?'tamamlandı':'bekliyor'}${sk?' · 🔥 '+sk+' gün':''}</div></div>${ctl}</div>`}).join(''):'<div class="empty">Ayarlar sekmesinden hedef ekle.</div>';
- const tn=new Date().getDate(),R=[...S.cards.map(c=>({...c,t:'Kart'})),...S.fixed.map(f=>({...f,t:'Taksit',name:f.name}))].map(r=>({r,df:(r.day-tn+31)%31})).filter(x=>x.df<=6&&(x.r.day>=tn||x.df<=6)).sort((a,b)=>a.df-b.df);
- $('rems').innerHTML=R.map(x=>`<div class="rem" style="border-left-color:${x.r.catId?cc(x.r.catId):(x.r.color||'#e0a95e')}"><b>${esc(x.r.name)}</b> · ${x.df===0?'BUGÜN':x.df+' gün kaldı'} <span class="s">${x.r.t}${x.r.amount?' · ₺'+x.r.amount:''}</span></div>`).join('');
- $('tex').innerHTML=exList(S.exps.filter(e=>e.date===t))}
-function exList(a,lim){a=[...a].sort((x,y)=>(y.date+y.id).localeCompare(x.date+x.id));if(lim)a=a.slice(0,lim);return a.length?a.map(e=>`<div class="row"><div><div class="n"><span class="dot" style="background:${cc(e.catId)}"></span>${esc(cn(e.catId))}</div>${e.note?`<div class="s">${esc(e.note)}</div>`:''}</div><div style="text-align:right"><b>₺${e.amount.toFixed(2)}</b><div class="s">${e.date}</div></div><button class="x" onclick="delExp('${e.id}')">✕</button></div>`).join(''):'<div class="empty">Kayıt yok.</div>'}
-function addExp(){const c=$('e-cat').value,a=parseFloat($('e-amt').value);let p=parseFloat($('e-pct').value)||100;p=Math.min(100,Math.max(1,p));if(!c||!(a>0))return alert('Kategori ve tutar gir.');let n=$('e-note').value.trim();if(p!==100)n=(n?n+' ':'')+`(fiş ₺${a.toFixed(2)}, %${p})`;S.exps.push({id:uid(),catId:c,amount:r2(a*p/100),note:n,date:TD()});$('e-amt').value='';$('e-note').value='';save();all()}
-function delExp(id){if(confirm('Silinsin mi?')){S.exps=S.exps.filter(e=>e.id!==id);save();all()}}
-function catOpts(blank){let h=`<option value="">${blank}</option>`;S.cats.filter(c=>!c.parent).forEach(m=>{h+=`<optgroup label="${esc(m.name)}"><option value="${m.id}">${esc(m.name)} (genel)</option>`+S.cats.filter(c=>c.parent===m.id).map(s=>`<option value="${s.id}">└ ${esc(s.name)}</option>`).join('')+'</optgroup>'});return h}
-function renDrop(){const mv=$('a-mc').value,iv=$('i-cat').value;$('a-mc').innerHTML='<option value="">Tüm kategoriler</option>'+S.cats.filter(c=>!c.parent).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');$('a-mc').value=mv;$('i-cat').innerHTML=catOpts('Kategori seç…');$('i-cat').value=iv;const v=$('e-cat').value;$('e-cat').innerHTML=catOpts('Seç…');$('e-cat').value=v;$('p-k').innerHTML=catOpts('Kategorisiz');$('k-p').innerHTML='<option value="">— Ana kategori —</option>'+S.cats.filter(c=>!c.parent).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}
-let cy=new Date().getFullYear(),cmn=new Date().getMonth();
-function cmv(n){if(!n){cy=new Date().getFullYear();cmn=new Date().getMonth()}else{cmn+=n;if(cmn<0){cmn=11;cy--}if(cmn>11){cmn=0;cy++}}renCal()}
-function renCal(){$('cm').textContent=new Date(cy,cmn,1).toLocaleDateString('tr-TR',{month:'long',year:'numeric'});let h=['Pt','Sa','Ça','Pe','Cu','Ct','Pz'].map(d=>`<div class="dw">${d}</div>`).join('');const o=(new Date(cy,cmn,1).getDay()+6)%7;for(let i=0;i<o;i++)h+='<div></div>';
- for(let d=1;d<=new Date(cy,cmn+1,0).getDate();d++){const s=fd(new Date(cy,cmn,d)),p=dayPct(s),x=exDay(s);h+=`<div class="cd ${s===TD()?'td':''}" style="background:${p>0?`color-mix(in srgb,var(--p) ${15+p*60}%,var(--c))`:'var(--c)'}" onclick="dayP('${s}')">${d}${x?`<small>₺${Math.round(x)}</small>`:''}${payDots(d)}</div>`}$('cal').innerHTML=h}
-function dayP(s){const p=$('dp');p.style.display='block';const gs=S.goals.map(g=>{const v=gv(g.id,s);return `<div class="row"><span class="n"><span class="dot" style="background:${g.color}"></span>${esc(g.name)}</span><span>${g.type==='tick'?(v?'✓':'—'):v?v+(g.type==='time'?' dk':''):'—'}</span></div>`}).join('');
- const dn=+s.slice(8),pl=[...S.cards.filter(c=>c.day===dn).map(c=>({n:c.name+' (kart)',a:'',col:c.color||'#e0715e'})),...S.fixed.filter(f=>f.day===dn).map(f=>({n:f.name,a:'₺'+f.amount,col:fcol(f)}))];p.innerHTML=`<b>${tl(s)}</b><h2>Hedefler</h2>${gs||'<div class="empty">Hedef yok</div>'}${pl.length?'<h2>Ödemeler</h2>'+pl.map(x=>`<div class="row"><span class="n"><span class="dot" style="background:${x.col}"></span>${esc(x.n)}</span><b>${x.a}</b></div>`).join(''):''}<h2>Harcamalar <small>₺${exDay(s).toFixed(2)}</small></h2>${exList(S.exps.filter(e=>e.date===s))}`}
-let rng=30,CH={};
-function mk(id,cfg){if(CH[id])CH[id].destroy();CH[id]=new Chart($(id),cfg)}
-const ax={ticks:{color:'#5d6376',maxTicksLimit:8,font:{size:10}},grid:{color:'#2b2f3a'}};
-function renAn(){const D=days(rng),lb=D.map(d=>d.slice(5).replace('-','/')),op=(x={})=>({responsive:true,plugins:{legend:{display:!!x.lg,labels:{color:'#9aa1b0',boxWidth:10}}},scales:{x:{...ax,stacked:!!x.st},y:{...ax,stacked:!!x.st,beginAtZero:true,...(x.y||{})}}});
- const tg=S.goals.filter(g=>g.type==='time');
- mk('c1',{type:'bar',data:{labels:lb,datasets:tg.map(g=>({label:g.name,data:D.map(d=>gv(g.id,d)),backgroundColor:g.color}))},options:op({st:1,lg:1})});
- mk('c2',{type:'line',data:{labels:lb,datasets:[{data:D.map(d=>Math.round(dayPct(d)*100)),borderColor:'#5fbf8f',backgroundColor:'rgba(95,191,143,.15)',fill:true,tension:.3,pointRadius:0}]},options:op({y:{max:100}})});
- mk('c3',{type:'bar',data:{labels:lb,datasets:[{data:D.map(exDay),backgroundColor:'#6ea8ff'}]},options:op()});
- const m={},cl={};S.exps.filter(e=>e.date>=D[0]).forEach(e=>{const t=top(e.catId),n=t?t.name:'Kategorisiz';m[n]=(m[n]||0)+e.amount;cl[n]=t?t.color:'#6b6b67'});
- mk('c4',{type:'doughnut',data:{labels:Object.keys(m),datasets:[{data:Object.values(m).map(r2),backgroundColor:Object.keys(m).map(k=>cl[k]),borderColor:'#20232b'}]},options:{responsive:true,plugins:{legend:{position:'right',labels:{color:'#9aa1b0',boxWidth:10}}}}});
- const m30=r2(S.exps.filter(e=>e.date>=fd(ad(new Date(),-29))).reduce((a,e)=>a+e.amount,0)/30),tp=Object.keys(m).sort((a,b)=>m[b]-m[a])[0]||'-';
- $('am').innerHTML=`<div class="stat"><b style="font-size:1rem">${esc(tp)}</b><span>en çok harcanan</span></div><div class="stat"><b>₺${m30}</b><span>30 gün günlük ort.</span></div><div class="stat"><b>${S.exps.length}</b><span>toplam işlem</span></div>`;
- const sv=$('a-mc').value,sub={},sc={};S.exps.filter(e=>e.date>=D[0]).forEach(e=>{const t=top(e.catId);if(sv&&(!t||t.id!==sv))return;const n=e.catId?cn(e.catId):'Kategorisiz';sub[n]=(sub[n]||0)+e.amount;sc[n]=cc(e.catId)});
- const sk=Object.keys(sub).sort((a,b)=>sub[b]-sub[a]);mk('c5',{type:'bar',data:{labels:sk,datasets:[{data:sk.map(k=>r2(sub[k])),backgroundColor:sk.map(k=>sc[k]),borderRadius:4}]},options:{...op(),indexAxis:'y'}});
- const W=18,end=new Date(),sd=ad(end,-((end.getDay()+6)%7)-(W-1)*7);
- $('hms').innerHTML=S.goals.map(g=>{const mx=Math.max(1,...S.logs.filter(l=>l.g===g.id).map(l=>gv(g.id,l.d)));let c='';for(let i=0;i<W*7;i++){const d=ad(sd,i),s=fd(d);if(d>end){c+='<i style="visibility:hidden"></i>';continue}const v=gv(g.id,s);c+=`<i title="${s}: ${v}" style="${v?`background:${g.color};opacity:${g.type==='time'?.3+.7*v/mx:1}`:''}"></i>`}
-  const tot=S.logs.filter(l=>l.g===g.id).reduce((a,l)=>a+l.v,0);return `<div class="card"><div class="row" style="border:0;padding:0 0 8px"><span class="n"><span class="dot" style="background:${g.color}"></span>${esc(g.name)}</span><span class="s">🔥 ${streak(g)} gün · toplam ${tot}${g.type==='time'?' dk':''}</span></div><div class="hm">${c}</div></div>`}).join('')||'<div class="empty">Hedef yok.</div>'}
-document.querySelectorAll('#rg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#rg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');rng=+b.dataset.r;renAn()});
-function addGoal(){const n=$('g-n').value.trim();if(!n)return;S.goals.push({id:uid(),name:n,type:$('g-t').value,color:$('g-c').value});$('g-n').value='';save();all()}
-function delGoal(id){if(confirm('Hedef ve kayıtları silinsin mi?')){S.goals=S.goals.filter(g=>g.id!==id);S.logs=S.logs.filter(l=>l.g!==id);save();all()}}
-function addCat(){const n=$('k-n').value.trim();if(!n)return;S.cats.push({id:uid(),name:n,parent:$('k-p').value||null,color:$('k-c').value,budget:parseFloat($('k-b').value)||0});$('k-n').value=$('k-b').value='';save();all()}
-function delCat(id){if(confirm('Kategori silinsin mi? Bağlı harcamalar kategorisiz kalır.')){const ids=[id,...S.cats.filter(c=>c.parent===id).map(c=>c.id)];S.exps.forEach(e=>{if(ids.includes(e.catId))e.catId=null});S.cats=S.cats.filter(c=>!ids.includes(c.id));save();all()}}
-function addCC(){const n=$('cc-n').value.trim(),d=+$('cc-d').value;if(!n||d<1||d>31)return;S.cards.push({id:uid(),name:n,day:d,color:$('cc-c').value});$('cc-n').value=$('cc-d').value='';save();all()}
-function addFix(){const n=$('p-n').value.trim(),a=parseFloat($('p-a').value),d=+$('p-d').value;if(!n||!a||!d)return alert('Ad, tutar, gün gerekli.');S.fixed.push({id:uid(),name:n,amount:a,day:d,count:+$('p-c').value||null,catId:$('p-k').value||null,color:$('p-col').value});['p-n','p-a','p-d','p-c'].forEach(i=>$(i).value='');save();procFixed();all()}
-function renSet(){const li=(n,c,s,f)=>`<div class="row"><span class="n"><span class="dot" style="background:${c}"></span>${esc(n)} <span class="s">${s}</span></span><button class="x" onclick="${f}">✕</button></div>`;
- $('gl').innerHTML=S.goals.map(g=>li(g.name,g.color,{time:'süre',tick:'tick',count:'sayaç'}[g.type],`delGoal('${g.id}')`)).join('');
- $('kl').innerHTML=S.cats.filter(c=>!c.parent).map(m=>li(m.name,m.color,m.budget?'limit ₺'+m.budget:'',`delCat('${m.id}')`)+S.cats.filter(c=>c.parent===m.id).map(s=>`<div style="padding-left:20px">${li('└ '+s.name,m.color,s.budget?'limit ₺'+s.budget:'',`delCat('${s.id}')`)}</div>`).join('')).join('');
- $('ccl').innerHTML=S.cards.map(c=>li(c.name,c.color||'#e0715e','ayın '+c.day+'.',`S.cards=S.cards.filter(x=>x.id!=='${c.id}');save();all()`)).join('');
- $('pl').innerHTML=S.fixed.map(f=>li(f.name,fcol(f),`₺${f.amount} · ayın ${f.day}. · ${f.count?f.count+' taksit kaldı':'sabit'}`,`S.fixed=S.fixed.filter(x=>x.id!=='${f.id}');save();all()`)).join('')}
-function renIns(){const id=$('i-cat').value,q=$('i-q').value.toLowerCase(),m=$('i-m');if(!id){m.style.display='none';$('i-l').innerHTML='<div class="empty">Kategori seç.</div>';return}
- const ids=[id,...S.cats.filter(c=>c.parent===id).map(c=>c.id)],cat=S.cats.find(c=>c.id===id)||{};let ex=S.exps.filter(e=>ids.includes(e.catId));if(q)ex=ex.filter(e=>(e.note||'').toLowerCase().includes(q));
- const dn=new Date().getDate(),up=S.fixed.filter(f=>ids.includes(f.catId)&&f.day>dn),us=up.reduce((a,f)=>a+f.amount,0),tot=r2(ex.reduce((a,e)=>a+e.amount,0)),d30=fd(ad(new Date(),-30)),s30=ex.filter(e=>e.date>=d30).reduce((a,e)=>a+e.amount,0),ms=r2(ex.filter(e=>e.date.slice(0,7)===TD().slice(0,7)).reduce((a,e)=>a+e.amount,0)+us),b=cat.budget||0;
- const bc=!b?'':ms/b>1?'neg':ms/b>.8?'':'pos';
- m.style.display='grid';m.innerHTML=`<div class="stat"><b>₺${tot.toFixed(2)}</b><span>toplam</span></div><div class="stat"><b>₺${(s30/30).toFixed(2)}</b><span>30 gün günlük ort.</span></div><div class="stat"><b>${ex.length}</b><span>işlem</span></div><div class="stat"><b class="${bc}">₺${ms.toFixed(0)}${b?' / ₺'+b:''}</b><span>${b?'bu ay (limit)':'bu ay (limit yok)'}</span></div>`;
- $('i-l').innerHTML=(q?'':up.map(f=>`<div class="row" style="opacity:.6"><div><div class="n"><span class="dot" style="background:${fcol(f)}"></span>${esc(f.name)}</div><div class="s">yaklaşan · ayın ${f.day}.</div></div><b>₺${f.amount.toFixed(2)}</b></div>`).join(''))+exList(ex)}
-function expJ(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'}));const n=new Date();a.download='hayat-takip-'+TD()+'_'+pad(n.getHours())+'-'+pad(n.getMinutes())+'.json';a.click()}
-function impJ(ev){const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const p=JSON.parse(r.result);if(!p.goals||!p.exps)throw 0;if(confirm('Mevcut veri değiştirilecek.')){S=p;save();all()}}catch(e){alert('Geçersiz dosya')}};r.readAsText(f)}
-function rst(){if(confirm('TÜM veriler silinecek!')){S={goals:[],logs:[],cats:[],exps:[],cards:[],fixed:[]};save();all()}}
-function all(){renDrop();renToday();$('exlog').innerHTML=exList(S.exps,100);renSet();const a=document.querySelector('.tab.on').id;if(a==='t-ins')renIns();if(a==='t-cal')renCal();if(a==='t-an')renAn()}
-document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.id==='t-'+b.dataset.t));all();if(b.dataset.t==='cal')renCal();if(b.dataset.t==='an')renAn()});
-load();
-</script></body></html>
+// ==========================================
+// 1. FIREBASE YAPILANDIRMASI (TKFTS ile aynı)
+// ==========================================
+const firebaseConfig = {
+  apiKey: "AIzaSyCa_0eQqJn6q5CKPsn8SHGUpGc7NsLY85c",
+  authDomain: "tkfts-57277.firebaseapp.com",
+  projectId: "tkfts-57277",
+  storageBucket: "tkfts-57277.firebasestorage.app",
+  messagingSenderId: "100556671492",
+  appId: "1:100556671492:web:9ac338008a46300a840351",
+  measurementId: "G-EMXHTGPESS"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const docRef = db.collection("tkfts_users").doc("tunahan_data");
+
+// state object (Genişletildi)
+let state = { categories: [], expenses: [], ccReminders: [], fixedPayments: [], habits: [], habitLogs: [] };
+
+// Tarih fonksiyonları
+function getISO(d){ return d.toISOString(); }
+function d2s(d){ return new Date(d).toLocaleDateString('tr-TR'); }
+function todayStr(){ 
+  const d = new Date(); 
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); 
+}
+function isToday(isoStr){ return isoStr.startsWith(todayStr()); }
+function getTodayDay() { return new Date().getDate(); }
+
+// ==========================================
+// 2. BULUT (FIREBASE) KAYIT VE YÜKLEME
+// ==========================================
+async function saveState() {
+  try {
+    document.getElementById('cloud-status').textContent = "(Kaydediliyor...)";
+    await docRef.set(state);
+    document.getElementById('cloud-status').textContent = "(Bulut Güncel)";
+    localStorage.setItem('tkfts_v4_backup', JSON.stringify(state)); 
+  } catch (error) {
+    document.getElementById('cloud-status').textContent = "(Çevrimdışı)";
+  }
+}
+
+async function loadState() {
+  try {
+    const doc = await docRef.get();
+    if (doc.exists) state = doc.data();
+    else {
+      const local = localStorage.getItem('tkfts_v4_backup') || localStorage.getItem('tkfts_v3_backup');
+      if (local) state = JSON.parse(local);
+    }
+    
+    // Güvenlik kontrolleri (Yeni habit listeleri için)
+    if(!state.ccReminders) state.ccReminders = [];
+    if(!state.fixedPayments) state.fixedPayments = [];
+    if(!state.categories) state.categories = [];
+    if(!state.expenses) state.expenses = [];
+    if(!state.habits) state.habits = [];
+    if(!state.habitLogs) state.habitLogs = [];
+
+    processFixedPayments();
+    refresh();
+  } catch (error) {
+    const backup = localStorage.getItem('tkfts_v4_backup');
+    if(backup) state = JSON.parse(backup);
+    refresh();
+  }
+}
+
+function processFixedPayments() {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth();
+  const currentDay = today.getDate();
+
+  state.fixedPayments.forEach(fp => {
+    if (currentDay >= fp.day) {
+      const processKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+      const alreadyProcessed = state.expenses.find(e => e.linkedFixedId === fp.id && e.processMonth === processKey);
+      if (!alreadyProcessed) {
+        const expDate = new Date(currentYear, currentMonth, fp.day, 12, 0, 0); 
+        state.expenses.push({ id: Date.now() + Math.random(), catId: fp.catId || null, amount: fp.amount, note: fp.name + " (Otomatik)", date: expDate.toISOString(), linkedFixedId: fp.id, processMonth: processKey });
+      }
+    }
+  });
+  saveState();
+}
+
+function getCatColor(catId) {
+  const cat = state.categories.find(c => c.id === catId);
+  return cat && cat.color ? cat.color : '#5d6376';
+}
+
+// ==========================================
+// 3. FİNANS FONKSİYONLARI
+// ==========================================
+function addCategory(){
+  const name = document.getElementById('cat-name').value.trim();
+  const color = document.getElementById('cat-color').value;
+  if(!name) return alert('Kategori adı girin.');
+  state.categories.push({ id: Date.now(), name, color });
+  document.getElementById('cat-name').value = ''; 
+  saveState(); refresh();
+}
+function deleteCategory(id){
+  if(!confirm('Silmek istediğinize emin misiniz? (Harcamalar kalır)')) return;
+  state.categories = state.categories.filter(c => c.id !== id);
+  saveState(); refresh();
+}
+
+function addExpense(){
+  const catId = document.getElementById('fin-cat').value;
+  const rawAmount = parseFloat(document.getElementById('fin-amount').value);
+  let note = document.getElementById('fin-note').value.trim();
+  let pct = parseFloat(document.getElementById('fin-pct').value) || 100;
+  
+  if(!catId || isNaN(rawAmount) || rawAmount <= 0) return alert('Geçerli kategori ve tutar girin.');
+  if(pct < 1) pct = 1; if(pct > 100) pct = 100;
+
+  const finalAmount = rawAmount * (pct / 100);
+  if (pct !== 100) note = note ? note + ` (Fiş: ₺${rawAmount.toFixed(2)}, %${pct})` : `(Fiş: ₺${rawAmount.toFixed(2)}, %${pct})`;
+  
+  state.expenses.push({ id: Date.now(), catId: parseInt(catId), amount: finalAmount, note: note, date: getISO(new Date()) });
+  document.getElementById('fin-amount').value = ''; 
+  document.getElementById('fin-note').value = '';
+  saveState(); refresh();
+  
+  const btn = document.getElementById('add-exp-btn');
+  const og = btn.textContent; btn.textContent = '✓ Eklendi!'; btn.style.background = 'var(--green)';
+  setTimeout(() => { btn.textContent = og; btn.style.background = ''; }, 1000);
+}
+function deleteExpense(id){
+  if(!confirm('Bu harcamayı silmek istediğinize emin misiniz?')) return;
+  state.expenses = state.expenses.filter(e => e.id !== id);
+  saveState(); refresh();
+}
+
+function addCCReminder() {
+  const name = document.getElementById('cc-name').value.trim();
+  const day = parseInt(document.getElementById('cc-day').value);
+  const color = document.getElementById('cc-color').value; 
+  if(!name || !day || day < 1 || day > 31) return alert('Geçerli kart ve gün girin.');
+  state.ccReminders.push({ id: Date.now(), name, day, color });
+  saveState(); refresh();
+}
+function deleteCC(id) { state.ccReminders = state.ccReminders.filter(r => r.id !== id); saveState(); refresh(); }
+
+function addFixedPayment() {
+  const name = document.getElementById('pay-name').value.trim();
+  const amount = parseFloat(document.getElementById('pay-amount').value);
+  const day = parseInt(document.getElementById('pay-day').value);
+  const catId = document.getElementById('pay-cat').value;
+  if(!name || !amount || !day) return alert('Ad, tutar ve gün zorunludur.');
+  state.fixedPayments.push({ id: Date.now(), name, amount, day, catId: catId ? parseInt(catId) : null });
+  saveState(); processFixedPayments(); refresh();
+}
+function deleteFixed(id) { state.fixedPayments = state.fixedPayments.filter(r => r.id !== id); saveState(); refresh(); }
+
+// ==========================================
+// 4. ZAMAN VE HEDEF (HABIT) FONKSİYONLARI
+// ==========================================
+function addHabit() {
+  const name = document.getElementById('habit-name').value.trim();
+  const type = document.getElementById('habit-type').value;
+  if(!name) return alert('Hedef adı girin.');
+  state.habits.push({ id: Date.now(), name, type });
+  document.getElementById('habit-name').value = '';
+  saveState(); refresh();
+}
+function deleteHabit(id) {
+  if(!confirm('Bu hedefi silmek istediğinize emin misiniz?')) return;
+  state.habits = state.habits.filter(h => h.id !== id);
+  saveState(); refresh();
+}
+
+function logTimeHabit(habitId) {
+  const input = document.getElementById('habit-time-' + habitId);
+  const val = parseInt(input.value);
+  if(!val || val <= 0) return;
+  
+  state.habitLogs.push({ id: Date.now(), habitId: habitId, date: todayStr(), value: val, type: 'time', ts: Date.now() });
+  input.value = '';
+  saveState(); refresh();
+}
+
+function toggleTickHabit(habitId, checkbox) {
+  // O güne ait eski kaydı temizle
+  state.habitLogs = state.habitLogs.filter(l => !(l.habitId === habitId && l.date === todayStr()));
+  if(checkbox.checked) {
+    state.habitLogs.push({ id: Date.now(), habitId: habitId, date: todayStr(), value: true, type: 'tick', ts: Date.now() });
+  }
+  saveState(); refresh();
+}
+function deleteHabitLog(id) {
+  state.habitLogs = state.habitLogs.filter(l => l.id !== id);
+  saveState(); refresh();
+}
+
+// ==========================================
+// 5. GÖRSELLEŞTİRME & RENDER
+// ==========================================
+function renderDropdowns() {
+  let catHtml = '<option value="">Seç...</option>';
+  state.categories.forEach(c => catHtml += `<option value="${c.id}">${c.name}</option>`);
+  document.getElementById('fin-cat').innerHTML = catHtml;
+  document.getElementById('pay-cat').innerHTML = '<option value="">Kategorisiz</option>' + catHtml.replace('<option value="">Seç...</option>','');
+}
+
+function renderManageLists() {
+  // Kategoriler
+  const cList = document.getElementById('category-manage-list');
+  cList.innerHTML = state.categories.map(c => `
+    <div class="log-row"><div class="log-info" style="flex-direction:row;align-items:center;">
+      <span class="color-dot" style="background:${c.color}"></span><span>${c.name}</span>
+    </div><button class="btn btn-danger" style="padding:4px 8px;font-size:11px;" onclick="deleteCategory(${c.id})">Sil</button></div>
+  `).join('') || '<div class="empty">Kategori yok.</div>';
+
+  // Hedefler
+  const hList = document.getElementById('habit-manage-list');
+  hList.innerHTML = state.habits.map(h => `
+    <div class="log-row"><div class="log-info">
+      <span class="log-cat">${h.name}</span><span class="log-note">${h.type === 'time' ? 'Süreli (Dk)' : 'Onaylı (Tick)'}</span>
+    </div><button class="btn btn-danger" style="padding:4px 8px;font-size:11px;" onclick="deleteHabit(${h.id})">Sil</button></div>
+  `).join('') || '<div class="empty">Hedef yok.</div>';
+
+  // CC ve Fixed
+  document.getElementById('cc-list').innerHTML = state.ccReminders.map(r => `
+    <div class="log-row"><div class="log-info"><span class="color-dot" style="background:${r.color}"></span><span>${r.name} (Ayın ${r.day}.)</span></div>
+    <button class="btn btn-danger" style="padding:4px 8px;font-size:11px;" onclick="deleteCC(${r.id})">Sil</button></div>
+  `).join('');
+
+  document.getElementById('active-payments-list').innerHTML = state.fixedPayments.map(r => `
+    <div class="log-row"><div class="log-info"><span class="log-cat">${r.name}</span><span class="log-note">Her ayın ${r.day}. günü (₺${r.amount})</span></div>
+    <button class="btn btn-danger" style="padding:4px 8px;font-size:11px;" onclick="deleteFixed(${r.id})">Sil</button></div>
+  `).join('');
+}
+
+function renderHabitsPage() {
+  const timeList = document.getElementById('time-habits-list');
+  const tickList = document.getElementById('tick-habits-list');
+  
+  const timeHabits = state.habits.filter(h => h.type === 'time');
+  const tickHabits = state.habits.filter(h => h.type === 'tick');
+  const tStr = todayStr();
+
+  timeList.innerHTML = timeHabits.map(h => `
+    <div class="habit-row">
+      <div class="habit-title">⏳ ${h.name}</div>
+      <div class="habit-actions">
+        <input type="number" id="habit-time-${h.id}" class="habit-input" placeholder="Dk" min="1">
+        <button class="btn btn-success" onclick="logTimeHabit(${h.id})">+ Ekle</button>
+      </div>
+    </div>
+  `).join('') || '<div class="empty">Süreli hedef bulunmuyor.</div>';
+
+  tickList.innerHTML = tickHabits.map(h => {
+    const isChecked = state.habitLogs.some(l => l.habitId === h.id && l.date === tStr && l.value === true);
+    return `
+    <div class="habit-row">
+      <label class="habit-title" style="cursor:pointer; width:100%;">
+        <input type="checkbox" class="custom-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleTickHabit(${h.id}, this)"> 
+        ${h.name}
+      </label>
+    </div>
+    `;
+  }).join('') || '<div class="empty">Onaylı hedef bulunmuyor.</div>';
+}
+
+function renderDashboard() {
+  const tStr = todayStr();
+  
+  // Metrikler
+  let dExp = 0;
+  state.expenses.forEach(e => { if(isToday(e.date)) dExp += e.amount; });
+  
+  let dTime = 0;
+  state.habitLogs.filter(l => l.date === tStr && l.type === 'time').forEach(l => dTime += l.value);
+  
+  let dTicksDone = state.habitLogs.filter(l => l.date === tStr && l.type === 'tick' && l.value === true).length;
+  let dTicksTotal = state.habits.filter(h => h.type === 'tick').length;
+
+  document.getElementById('dash-exp').textContent = '₺' + dExp.toFixed(2);
+  document.getElementById('dash-time').textContent = dTime + ' Dk';
+  document.getElementById('dash-ticks').textContent = dTicksDone + ' / ' + dTicksTotal;
+
+  // Harcama Geçmişi (Dashboard ve Finans)
+  const sortedExp = [...state.expenses].sort((a,b) => new Date(b.date) - new Date(a.date));
+  const expHtml = (limit) => sortedExp.slice(0,limit).map(e => {
+    const catName = state.categories.find(c=>c.id===e.catId)?.name || 'Kategorisiz';
+    const catColor = getCatColor(e.catId);
+    return `
+      <div class="log-row"><div class="log-info"><span class="log-cat"><span class="color-dot" style="background:${catColor}"></span>${catName}</span>
+      ${e.note ? `<span class="log-note">${e.note}</span>` : ''}</div>
+      <div class="log-right"><div class="log-amt">₺${e.amount.toFixed(2)}</div><div class="log-date">${d2s(e.date)}</div></div>
+      <button class="btn btn-danger" style="padding:4px;font-size:10px;margin-left:4px;" onclick="deleteExpense(${e.id})">Sil</button></div>`;
+  }).join('');
+
+  document.getElementById('recent-exp-log').innerHTML = expHtml(5) || '<div class="empty">Harcama kaydı yok.</div>';
+  document.getElementById('full-expense-log').innerHTML = expHtml(100) || '<div class="empty">Harcama kaydı yok.</div>';
+
+  // Hedef Logları (Sadece Bugün ve Süreli olanlar)
+  const todayTimeLogs = state.habitLogs.filter(l => l.date === tStr && l.type === 'time').sort((a,b) => b.ts - a.ts);
+  document.getElementById('recent-habit-log').innerHTML = todayTimeLogs.map(l => {
+    const hName = state.habits.find(h => h.id === l.habitId)?.name || 'Silinmiş Hedef';
+    return `
+      <div class="log-row"><div class="log-info"><span class="log-cat">⏳ ${hName}</span></div>
+      <div class="log-right"><div class="log-amt" style="color:var(--green)">+${l.value} Dk</div></div>
+      <button class="btn btn-danger" style="padding:4px;font-size:10px;margin-left:4px;" onclick="deleteHabitLog(${l.id})">Sil</button></div>`;
+  }).join('') || '<div class="empty">Bugün için kaydedilen süre yok.</div>';
+
+  // Yaklaşan Ödemeler
+  const todayNum = getTodayDay();
+  let rHtml = '';
+  const allReminders = [...state.ccReminders, ...state.fixedPayments];
+  allReminders.forEach(r => {
+    let diff = r.day - todayNum; if(diff < 0) diff += 30;
+    if (diff >= 0 && diff <= 5) {
+      rHtml += `<div style="background:rgba(224,169,94,0.1); border-left:3px solid var(--gold); padding:10px; margin-bottom:8px; border-radius:4px; display:flex; justify-content:space-between; font-size:13px;">
+        <span><strong>${r.name}</strong> (${diff===0 ? 'BUGÜN' : diff+' gün kaldı'})</span> <strong>${r.amount ? '₺'+r.amount : 'Kredi Kartı'}</strong>
+      </div>`;
+    }
+  });
+  document.getElementById('reminder-panel').innerHTML = rHtml ? `<div style="margin-bottom:15px">${rHtml}</div>` : '';
+}
+
+function renderCalendar() {
+  if(!document.getElementById('page-calendar').classList.contains('active')) return;
+  const now = new Date();
+  const year = now.getFullYear(); const month = now.getMonth(); const today = now.getDate();
+  const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+  document.getElementById('cal-title').textContent = `${monthNames[month]} ${year} Takvimi`;
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay();
+  let startOffset = firstDay === 0 ? 6 : firstDay - 1; 
+
+  let html = '';
+  for(let i=0; i<startOffset; i++) html += `<div class="cal-day" style="background:transparent;border:none"></div>`;
+
+  for(let d=1; d<=daysInMonth; d++) {
+    const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    let items = [];
+    
+    // Ödemeler
+    state.ccReminders.forEach(cc => { if(cc.day===d) items.push(`<div class="cal-event" style="background:${cc.color};">${cc.name}</div>`); });
+    state.fixedPayments.forEach(fp => { if(fp.day===d) items.push(`<div class="cal-event" style="background:var(--gold);color:#000">${fp.name}</div>`); });
+
+    // Noktalar (Harcama = Kırmızı, Süre/Tick = Yeşil)
+    let dots = '';
+    const hasExp = state.expenses.some(e => e.date.startsWith(ds));
+    const hasHabit = state.habitLogs.some(l => l.date === ds && (l.type === 'time' || l.value === true));
+    
+    if(hasExp) dots += `<div class="cal-dot" style="background:var(--red)"></div>`;
+    if(hasHabit) dots += `<div class="cal-dot" style="background:var(--green)"></div>`;
+
+    let cls = 'cal-day' + (d < today ? ' past' : (d === today ? ' today' : ''));
+    html += `<div class="${cls}"><div class="cal-num">${d}</div>${items.join('')}<div class="cal-dot-container">${dots}</div></div>`;
+  }
+  document.getElementById('calendar-body').innerHTML = html;
+}
+
+let trendChart, doughnutChart;
+function renderCharts() {
+  if(!document.getElementById('page-stats').classList.contains('active')) return;
+  
+  // Son 14 Gün Verileri
+  const labels = []; const expData = []; const timeData = [];
+  for(let i=13; i>=0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    labels.push(d.toLocaleDateString('tr-TR', { day:'2-digit', month:'2-digit' }));
+    
+    let eSum = 0; state.expenses.filter(e => e.date.startsWith(ds)).forEach(e => eSum += e.amount);
+    expData.push(eSum);
+    
+    let tSum = 0; state.habitLogs.filter(l => l.date === ds && l.type === 'time').forEach(l => tSum += l.value);
+    timeData.push(tSum);
+  }
+
+  if(trendChart) trendChart.destroy();
+  trendChart = new Chart(document.getElementById('trend-chart'), {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Süre (Dk)', data: timeData, borderColor: '#1D9E75', backgroundColor: 'rgba(29, 158, 117, 0.1)', fill: true, tension: 0.3, yAxisID: 'y' },
+        { label: 'Harcama (₺)', data: expData, borderColor: '#e0715e', borderDash: [5, 5], tension: 0.3, yAxisID: 'y1' }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales: {
+      y: { type: 'linear', display: true, position: 'left', grid: {color: '#2b2f3a'} },
+      y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
+    }}
+  });
+
+  // Kategori Dağılımı (Doughnut)
+  const catSums = {};
+  state.expenses.forEach(e => {
+    const cName = state.categories.find(c=>c.id===e.catId)?.name || 'Kategorisiz';
+    catSums[cName] = (catSums[cName] || 0) + e.amount;
+  });
+  
+  if(doughnutChart) doughnutChart.destroy();
+  doughnutChart = new Chart(document.getElementById('doughnut-chart'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(catSums),
+      datasets: [{ data: Object.values(catSums), backgroundColor: ['#e0a95e', '#e0715e', '#8b93ff', '#1D9E75', '#9aa1b0', '#EF9F27'] }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels:{color:'#eceef2'} } } }
+  });
+}
+
+function refresh() {
+  renderDropdowns();
+  renderManageLists();
+  renderHabitsPage();
+  renderDashboard();
+  if(document.getElementById('page-calendar').classList.contains('active')) renderCalendar();
+  if(document.getElementById('page-stats').classList.contains('active')) renderCharts();
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.nav-btn').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.getElementById('page-'+name).classList.add('active');
+  refresh();
+}
+
+// YEDEKLEME
+function exportData(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `sistem_yedek_${todayStr()}.json`; a.click();
+}
+function importData(ev){
+  const file = ev.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try { state = JSON.parse(e.target.result); saveState(); refresh(); alert('Veri yüklendi!'); }
+    catch(err){ alert('Hatalı dosya!'); }
+  }; r.readAsText(file);
+}
+function resetData(){
+  if(!confirm('Tüm veriler silinecek. Emin misiniz?')) return;
+  state = { categories: [], expenses: [], ccReminders: [], fixedPayments: [], habits: [], habitLogs: [] };
+  saveState(); refresh();
+}
+
+window.onload = async () => { await loadState(); };
+</script>
+</body>
+</html>
