@@ -37,19 +37,22 @@ nav { display: flex; gap: 4px; flex-wrap: wrap; background: var(--bg-card); bord
 .section-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--text); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
 
 .metric-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); margin-bottom: 1rem; }
-@media(max-width:768px) { .metric-grid { grid-template-columns: repeat(1, 1fr); } }
+.metric-grid.c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media(max-width:768px) { .metric-grid, .metric-grid.c2 { grid-template-columns: repeat(1, 1fr); } }
 .metric { background: var(--bg-raised); border-radius: var(--rm); padding: 1.25rem 1rem; text-align: center; border: 1px solid var(--line); }
 .metric-label { font-size: 12px; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; font-weight: 500; }
 .metric-val { font-size: 22px; font-weight: 700; color: var(--text); }
 .metric-val.money { color: var(--red); }
 .metric-val.time { color: var(--green); }
 .metric-val.gold { color: var(--gold); }
+.metric-val.blue { color: var(--blue); }
 
 .btn { padding: 8px 14px; border: 1px solid var(--line); border-radius: var(--rm); background: var(--bg-raised); color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all .15s; }
 .btn:hover { filter: brightness(1.2); }
 .btn-primary { background: var(--gold); color: #15171c; border-color: var(--gold); font-weight: 600; }
 .btn-danger { background: rgba(224, 113, 94, 0.1); border-color: var(--red); color: var(--red); }
 .btn-success { background: rgba(29, 158, 117, 0.1); border-color: var(--green); color: var(--green); }
+.btn-blue { background: rgba(139, 147, 255, 0.1); border-color: var(--blue); color: var(--blue); }
 
 input, select { border: 1px solid var(--line); border-radius: var(--rm); padding: 9px 12px; font-size: 14px; background: var(--bg); color: var(--text); font-family: inherit; width: 100%; outline: none; transition: border-color .2s; }
 input:focus, select:focus { border-color: var(--gold); }
@@ -93,6 +96,8 @@ label { font-size: 13px; font-weight: 500; color: var(--text-dim); margin-bottom
 .cal-dot { width: 8px; height: 8px; border-radius: 50%; }
 
 .chart-wrap { position: relative; width: 100%; height: 260px; margin-top: 12px; }
+.filter-bar { display:flex; gap:10px; margin-bottom:15px; align-items:center; }
+.filter-bar select { width: auto; min-width: 150px; padding: 6px 12px; }
 </style>
 </head>
 <body>
@@ -103,10 +108,11 @@ label { font-size: 13px; font-weight: 500; color: var(--text-dim); margin-bottom
 </header>
 
 <nav>
-  <button class="nav-btn active" onclick="switchTab('dashboard',this)">Özet (Bugün)</button>
-  <button class="nav-btn" onclick="switchTab('habits',this)">Zaman & Hedefler</button>
+  <button class="nav-btn active" onclick="switchTab('dashboard',this)">Özet</button>
+  <button class="nav-btn" onclick="switchTab('wealth',this)">Varlık & Borç</button>
+  <button class="nav-btn" onclick="switchTab('habits',this)">Hedefler</button>
   <button class="nav-btn" onclick="switchTab('finance',this)">Finans</button>
-  <button class="nav-btn" onclick="switchTab('calendar',this)">Takvim & Ödemeler</button>
+  <button class="nav-btn" onclick="switchTab('calendar',this)">Takvim</button>
   <button class="nav-btn" onclick="switchTab('stats',this)">Grafikler</button>
   <button class="nav-btn" onclick="switchTab('manage',this)">Ayarlar</button>
 </nav>
@@ -128,6 +134,37 @@ label { font-size: 13px; font-weight: 500; color: var(--text-dim); margin-bottom
     <div class="card" style="margin-bottom:0">
       <div class="section-title">Bugün Kaydedilen Hedefler</div>
       <div id="recent-habit-log"><div class="empty">Bugün hedef kaydı yok.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- VARLIK VE BORÇ TAKİBİ -->
+<div id="page-wealth" class="page">
+  <div class="metric-grid c2">
+    <div class="metric"><div class="metric-label">Toplam Varlık</div><div class="metric-val time" id="wealth-assets-total">₺0</div></div>
+    <div class="metric"><div class="metric-label">Toplam Borç</div><div class="metric-val money" id="wealth-debts-total">₺0</div></div>
+    <div class="metric" style="grid-column: 1 / -1;"><div class="metric-label">Net Varlık Durumu</div><div class="metric-val blue" id="wealth-net-total">₺0</div></div>
+  </div>
+
+  <div class="form-row c2">
+    <!-- Varlık Ekle -->
+    <div class="card" style="margin-bottom:0; border-top: 3px solid var(--green);">
+      <div class="section-title">Varlık Ekle</div>
+      <div class="form-row"><label>Varlık Adı (Banka, Nakit, Altın vb.)</label><input type="text" id="asset-name" placeholder="Örn: Garanti BBVA"></div>
+      <div class="form-row"><label>Tutar (₺)</label><input type="number" id="asset-amount" placeholder="0"></div>
+      <button class="btn btn-success" onclick="addWealthItem('asset')">Varlık Olarak Kaydet</button>
+      <div class="section-title" style="margin-top:20px;">Mevcut Varlıklar</div>
+      <div id="asset-list"></div>
+    </div>
+    
+    <!-- Borç Ekle -->
+    <div class="card" style="margin-bottom:0; border-top: 3px solid var(--red);">
+      <div class="section-title">Borç Ekle</div>
+      <div class="form-row"><label>Borç Adı (Kredi, Kart, Şahıs vb.)</label><input type="text" id="debt-name" placeholder="Örn: Kredi Kartı (Ziraat)"></div>
+      <div class="form-row"><label>Tutar (₺)</label><input type="number" id="debt-amount" placeholder="0"></div>
+      <button class="btn btn-danger" onclick="addWealthItem('debt')">Borç Olarak Kaydet</button>
+      <div class="section-title" style="margin-top:20px;">Mevcut Borçlar</div>
+      <div id="debt-list"></div>
     </div>
   </div>
 </div>
@@ -211,13 +248,28 @@ label { font-size: 13px; font-weight: 500; color: var(--text-dim); margin-bottom
 <!-- GRAFİKLER -->
 <div id="page-stats" class="page">
   <div class="card">
-    <div class="section-title">Son 14 Gün: Harcama (₺) ve Süre (Dk) Trendi</div>
+    <div class="section-title">Zaman İçinde Varlık & Borç (Net Durum)</div>
+    <div class="chart-wrap">
+      <canvas id="wealth-chart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Harcama ve Hedef Trendi</div>
+    <div class="filter-bar">
+      <select id="chart-time-filter" onchange="renderCharts()">
+        <option value="14">Son 14 Gün</option>
+        <option value="30">Son 30 Gün</option>
+        <option value="365">Bu Yıl (Aylık Dağılım)</option>
+      </select>
+    </div>
     <div class="chart-wrap">
       <canvas id="trend-chart"></canvas>
     </div>
   </div>
+
   <div class="card">
-    <div class="section-title">Harcama Kategori Dağılımı</div>
+    <div class="section-title">Kategori Bazlı Harcama Dağılımı</div>
     <div class="chart-wrap">
       <canvas id="doughnut-chart"></canvas>
     </div>
@@ -269,7 +321,7 @@ label { font-size: 13px; font-weight: 500; color: var(--text-dim); margin-bottom
 
 <script>
 // ==========================================
-// 1. FIREBASE YAPILANDIRMASI (TKFTS ile aynı)
+// 1. FIREBASE YAPILANDIRMASI
 // ==========================================
 const firebaseConfig = {
   apiKey: "AIzaSyCa_0eQqJn6q5CKPsn8SHGUpGc7NsLY85c",
@@ -285,8 +337,12 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const docRef = db.collection("tkfts_users").doc("tunahan_data");
 
-// state object (Genişletildi)
-let state = { categories: [], expenses: [], ccReminders: [], fixedPayments: [], habits: [], habitLogs: [] };
+// state object (Genişletildi - Varlıklar Eklendi)
+let state = { 
+  categories: [], expenses: [], ccReminders: [], fixedPayments: [], 
+  habits: [], habitLogs: [], 
+  wealthItems: [], wealthHistory: [] 
+};
 
 // Tarih fonksiyonları
 function getISO(d){ return d.toISOString(); }
@@ -306,7 +362,7 @@ async function saveState() {
     document.getElementById('cloud-status').textContent = "(Kaydediliyor...)";
     await docRef.set(state);
     document.getElementById('cloud-status').textContent = "(Bulut Güncel)";
-    localStorage.setItem('tkfts_v4_backup', JSON.stringify(state)); 
+    localStorage.setItem('tkfts_v5_backup', JSON.stringify(state)); 
   } catch (error) {
     document.getElementById('cloud-status').textContent = "(Çevrimdışı)";
   }
@@ -317,22 +373,24 @@ async function loadState() {
     const doc = await docRef.get();
     if (doc.exists) state = doc.data();
     else {
-      const local = localStorage.getItem('tkfts_v4_backup') || localStorage.getItem('tkfts_v3_backup');
+      const local = localStorage.getItem('tkfts_v5_backup') || localStorage.getItem('tkfts_v4_backup') || localStorage.getItem('tkfts_v3_backup');
       if (local) state = JSON.parse(local);
     }
     
-    // Güvenlik kontrolleri (Yeni habit listeleri için)
+    // Güvenlik kontrolleri (Eski verileri bozmamak için)
     if(!state.ccReminders) state.ccReminders = [];
     if(!state.fixedPayments) state.fixedPayments = [];
     if(!state.categories) state.categories = [];
     if(!state.expenses) state.expenses = [];
     if(!state.habits) state.habits = [];
     if(!state.habitLogs) state.habitLogs = [];
+    if(!state.wealthItems) state.wealthItems = [];
+    if(!state.wealthHistory) state.wealthHistory = [];
 
     processFixedPayments();
     refresh();
   } catch (error) {
-    const backup = localStorage.getItem('tkfts_v4_backup');
+    const backup = localStorage.getItem('tkfts_v5_backup');
     if(backup) state = JSON.parse(backup);
     refresh();
   }
@@ -363,7 +421,85 @@ function getCatColor(catId) {
 }
 
 // ==========================================
-// 3. FİNANS FONKSİYONLARI
+// 3. VARLIK VE BORÇ TAKİBİ FONKSİYONLARI
+// ==========================================
+function updateWealthHistory() {
+  const tStr = todayStr();
+  let totalAsset = 0; let totalDebt = 0;
+  state.wealthItems.forEach(item => {
+    if(item.type === 'asset') totalAsset += item.amount;
+    else if(item.type === 'debt') totalDebt += item.amount;
+  });
+  const netWorth = totalAsset - totalDebt;
+
+  // Aynı güne ait kayıt varsa güncelle, yoksa yeni kayıt ekle
+  const existingLogIndex = state.wealthHistory.findIndex(h => h.date === tStr);
+  if(existingLogIndex >= 0) {
+    state.wealthHistory[existingLogIndex] = { date: tStr, assets: totalAsset, debts: totalDebt, net: netWorth };
+  } else {
+    state.wealthHistory.push({ date: tStr, assets: totalAsset, debts: totalDebt, net: netWorth });
+  }
+  
+  // Tarihe göre sırala
+  state.wealthHistory.sort((a,b) => new Date(a.date) - new Date(b.date));
+}
+
+function addWealthItem(type) {
+  const nameInput = document.getElementById(type === 'asset' ? 'asset-name' : 'debt-name');
+  const amtInput = document.getElementById(type === 'asset' ? 'asset-amount' : 'debt-amount');
+  
+  const name = nameInput.value.trim();
+  const amount = parseFloat(amtInput.value);
+  
+  if(!name || isNaN(amount) || amount < 0) return alert('Lütfen geçerli bir isim ve tutar girin.');
+  
+  state.wealthItems.push({ id: Date.now(), name, amount, type });
+  nameInput.value = ''; amtInput.value = '';
+  
+  updateWealthHistory();
+  saveState(); refresh();
+}
+
+function deleteWealthItem(id) {
+  if(!confirm('Bu kaydı silmek istediğinize emin misiniz?')) return;
+  state.wealthItems = state.wealthItems.filter(i => i.id !== id);
+  updateWealthHistory();
+  saveState(); refresh();
+}
+
+function renderWealthPage() {
+  let totalAssets = 0; let totalDebts = 0;
+  
+  const assetList = document.getElementById('asset-list');
+  const debtList = document.getElementById('debt-list');
+  
+  const assets = state.wealthItems.filter(i => i.type === 'asset');
+  const debts = state.wealthItems.filter(i => i.type === 'debt');
+  
+  assetList.innerHTML = assets.map(a => {
+    totalAssets += a.amount;
+    return `<div class="log-row"><div class="log-info"><span class="log-cat" style="color:var(--green)">${a.name}</span></div>
+    <div class="log-right"><div class="log-amt">₺${a.amount.toFixed(2)}</div></div>
+    <button class="btn btn-danger" style="padding:4px 8px;font-size:11px;margin-left:8px;" onclick="deleteWealthItem(${a.id})">Sil</button></div>`;
+  }).join('') || '<div class="empty">Kayıtlı varlık bulunmuyor.</div>';
+
+  debtList.innerHTML = debts.map(d => {
+    totalDebts += d.amount;
+    return `<div class="log-row"><div class="log-info"><span class="log-cat" style="color:var(--red)">${d.name}</span></div>
+    <div class="log-right"><div class="log-amt">₺${d.amount.toFixed(2)}</div></div>
+    <button class="btn btn-danger" style="padding:4px 8px;font-size:11px;margin-left:8px;" onclick="deleteWealthItem(${d.id})">Sil</button></div>`;
+  }).join('') || '<div class="empty">Kayıtlı borç bulunmuyor.</div>';
+
+  const netWorth = totalAssets - totalDebts;
+
+  document.getElementById('wealth-assets-total').textContent = '₺' + totalAssets.toFixed(2);
+  document.getElementById('wealth-debts-total').textContent = '₺' + totalDebts.toFixed(2);
+  document.getElementById('wealth-net-total').textContent = '₺' + netWorth.toFixed(2);
+  document.getElementById('wealth-net-total').className = `metric-val ${netWorth >= 0 ? 'time' : 'money'}`;
+}
+
+// ==========================================
+// 4. FİNANS FONKSİYONLARI (Aynı)
 // ==========================================
 function addCategory(){
   const name = document.getElementById('cat-name').value.trim();
@@ -428,7 +564,7 @@ function addFixedPayment() {
 function deleteFixed(id) { state.fixedPayments = state.fixedPayments.filter(r => r.id !== id); saveState(); refresh(); }
 
 // ==========================================
-// 4. ZAMAN VE HEDEF (HABIT) FONKSİYONLARI
+// 5. ZAMAN VE HEDEF (HABIT) FONKSİYONLARI (Aynı)
 // ==========================================
 function addHabit() {
   const name = document.getElementById('habit-name').value.trim();
@@ -455,7 +591,6 @@ function logTimeHabit(habitId) {
 }
 
 function toggleTickHabit(habitId, checkbox) {
-  // O güne ait eski kaydı temizle
   state.habitLogs = state.habitLogs.filter(l => !(l.habitId === habitId && l.date === todayStr()));
   if(checkbox.checked) {
     state.habitLogs.push({ id: Date.now(), habitId: habitId, date: todayStr(), value: true, type: 'tick', ts: Date.now() });
@@ -468,7 +603,7 @@ function deleteHabitLog(id) {
 }
 
 // ==========================================
-// 5. GÖRSELLEŞTİRME & RENDER
+// 6. GÖRSELLEŞTİRME & RENDER
 // ==========================================
 function renderDropdowns() {
   let catHtml = '<option value="">Seç...</option>';
@@ -478,7 +613,6 @@ function renderDropdowns() {
 }
 
 function renderManageLists() {
-  // Kategoriler
   const cList = document.getElementById('category-manage-list');
   cList.innerHTML = state.categories.map(c => `
     <div class="log-row"><div class="log-info" style="flex-direction:row;align-items:center;">
@@ -486,7 +620,6 @@ function renderManageLists() {
     </div><button class="btn btn-danger" style="padding:4px 8px;font-size:11px;" onclick="deleteCategory(${c.id})">Sil</button></div>
   `).join('') || '<div class="empty">Kategori yok.</div>';
 
-  // Hedefler
   const hList = document.getElementById('habit-manage-list');
   hList.innerHTML = state.habits.map(h => `
     <div class="log-row"><div class="log-info">
@@ -494,7 +627,6 @@ function renderManageLists() {
     </div><button class="btn btn-danger" style="padding:4px 8px;font-size:11px;" onclick="deleteHabit(${h.id})">Sil</button></div>
   `).join('') || '<div class="empty">Hedef yok.</div>';
 
-  // CC ve Fixed
   document.getElementById('cc-list').innerHTML = state.ccReminders.map(r => `
     <div class="log-row"><div class="log-info"><span class="color-dot" style="background:${r.color}"></span><span>${r.name} (Ayın ${r.day}.)</span></div>
     <button class="btn btn-danger" style="padding:4px 8px;font-size:11px;" onclick="deleteCC(${r.id})">Sil</button></div>
@@ -509,12 +641,9 @@ function renderManageLists() {
 function renderHabitsPage() {
   const timeList = document.getElementById('time-habits-list');
   const tickList = document.getElementById('tick-habits-list');
-  
-  const timeHabits = state.habits.filter(h => h.type === 'time');
-  const tickHabits = state.habits.filter(h => h.type === 'tick');
   const tStr = todayStr();
 
-  timeList.innerHTML = timeHabits.map(h => `
+  timeList.innerHTML = state.habits.filter(h => h.type === 'time').map(h => `
     <div class="habit-row">
       <div class="habit-title">⏳ ${h.name}</div>
       <div class="habit-actions">
@@ -524,29 +653,19 @@ function renderHabitsPage() {
     </div>
   `).join('') || '<div class="empty">Süreli hedef bulunmuyor.</div>';
 
-  tickList.innerHTML = tickHabits.map(h => {
+  tickList.innerHTML = state.habits.filter(h => h.type === 'tick').map(h => {
     const isChecked = state.habitLogs.some(l => l.habitId === h.id && l.date === tStr && l.value === true);
-    return `
-    <div class="habit-row">
-      <label class="habit-title" style="cursor:pointer; width:100%;">
-        <input type="checkbox" class="custom-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleTickHabit(${h.id}, this)"> 
-        ${h.name}
-      </label>
-    </div>
-    `;
+    return `<div class="habit-row"><label class="habit-title" style="cursor:pointer; width:100%;">
+      <input type="checkbox" class="custom-checkbox" ${isChecked ? 'checked' : ''} onchange="toggleTickHabit(${h.id}, this)"> ${h.name}
+    </label></div>`;
   }).join('') || '<div class="empty">Onaylı hedef bulunmuyor.</div>';
 }
 
 function renderDashboard() {
   const tStr = todayStr();
   
-  // Metrikler
-  let dExp = 0;
-  state.expenses.forEach(e => { if(isToday(e.date)) dExp += e.amount; });
-  
-  let dTime = 0;
-  state.habitLogs.filter(l => l.date === tStr && l.type === 'time').forEach(l => dTime += l.value);
-  
+  let dExp = 0; state.expenses.forEach(e => { if(isToday(e.date)) dExp += e.amount; });
+  let dTime = 0; state.habitLogs.filter(l => l.date === tStr && l.type === 'time').forEach(l => dTime += l.value);
   let dTicksDone = state.habitLogs.filter(l => l.date === tStr && l.type === 'tick' && l.value === true).length;
   let dTicksTotal = state.habits.filter(h => h.type === 'tick').length;
 
@@ -554,13 +673,11 @@ function renderDashboard() {
   document.getElementById('dash-time').textContent = dTime + ' Dk';
   document.getElementById('dash-ticks').textContent = dTicksDone + ' / ' + dTicksTotal;
 
-  // Harcama Geçmişi (Dashboard ve Finans)
   const sortedExp = [...state.expenses].sort((a,b) => new Date(b.date) - new Date(a.date));
   const expHtml = (limit) => sortedExp.slice(0,limit).map(e => {
-    const catName = state.categories.find(c=>c.id===e.catId)?.name || 'Kategorisiz';
     const catColor = getCatColor(e.catId);
-    return `
-      <div class="log-row"><div class="log-info"><span class="log-cat"><span class="color-dot" style="background:${catColor}"></span>${catName}</span>
+    const catName = state.categories.find(c=>c.id===e.catId)?.name || 'Kategorisiz';
+    return `<div class="log-row"><div class="log-info"><span class="log-cat"><span class="color-dot" style="background:${catColor}"></span>${catName}</span>
       ${e.note ? `<span class="log-note">${e.note}</span>` : ''}</div>
       <div class="log-right"><div class="log-amt">₺${e.amount.toFixed(2)}</div><div class="log-date">${d2s(e.date)}</div></div>
       <button class="btn btn-danger" style="padding:4px;font-size:10px;margin-left:4px;" onclick="deleteExpense(${e.id})">Sil</button></div>`;
@@ -569,21 +686,17 @@ function renderDashboard() {
   document.getElementById('recent-exp-log').innerHTML = expHtml(5) || '<div class="empty">Harcama kaydı yok.</div>';
   document.getElementById('full-expense-log').innerHTML = expHtml(100) || '<div class="empty">Harcama kaydı yok.</div>';
 
-  // Hedef Logları (Sadece Bugün ve Süreli olanlar)
   const todayTimeLogs = state.habitLogs.filter(l => l.date === tStr && l.type === 'time').sort((a,b) => b.ts - a.ts);
   document.getElementById('recent-habit-log').innerHTML = todayTimeLogs.map(l => {
     const hName = state.habits.find(h => h.id === l.habitId)?.name || 'Silinmiş Hedef';
-    return `
-      <div class="log-row"><div class="log-info"><span class="log-cat">⏳ ${hName}</span></div>
+    return `<div class="log-row"><div class="log-info"><span class="log-cat">⏳ ${hName}</span></div>
       <div class="log-right"><div class="log-amt" style="color:var(--green)">+${l.value} Dk</div></div>
       <button class="btn btn-danger" style="padding:4px;font-size:10px;margin-left:4px;" onclick="deleteHabitLog(${l.id})">Sil</button></div>`;
   }).join('') || '<div class="empty">Bugün için kaydedilen süre yok.</div>';
 
-  // Yaklaşan Ödemeler
   const todayNum = getTodayDay();
   let rHtml = '';
-  const allReminders = [...state.ccReminders, ...state.fixedPayments];
-  allReminders.forEach(r => {
+  [...state.ccReminders, ...state.fixedPayments].forEach(r => {
     let diff = r.day - todayNum; if(diff < 0) diff += 30;
     if (diff >= 0 && diff <= 5) {
       rHtml += `<div style="background:rgba(224,169,94,0.1); border-left:3px solid var(--gold); padding:10px; margin-bottom:8px; border-radius:4px; display:flex; justify-content:space-between; font-size:13px;">
@@ -612,17 +725,12 @@ function renderCalendar() {
     const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     let items = [];
     
-    // Ödemeler
     state.ccReminders.forEach(cc => { if(cc.day===d) items.push(`<div class="cal-event" style="background:${cc.color};">${cc.name}</div>`); });
     state.fixedPayments.forEach(fp => { if(fp.day===d) items.push(`<div class="cal-event" style="background:var(--gold);color:#000">${fp.name}</div>`); });
 
-    // Noktalar (Harcama = Kırmızı, Süre/Tick = Yeşil)
     let dots = '';
-    const hasExp = state.expenses.some(e => e.date.startsWith(ds));
-    const hasHabit = state.habitLogs.some(l => l.date === ds && (l.type === 'time' || l.value === true));
-    
-    if(hasExp) dots += `<div class="cal-dot" style="background:var(--red)"></div>`;
-    if(hasHabit) dots += `<div class="cal-dot" style="background:var(--green)"></div>`;
+    if(state.expenses.some(e => e.date.startsWith(ds))) dots += `<div class="cal-dot" style="background:var(--red)"></div>`;
+    if(state.habitLogs.some(l => l.date === ds && (l.type === 'time' || l.value === true))) dots += `<div class="cal-dot" style="background:var(--green)"></div>`;
 
     let cls = 'cal-day' + (d < today ? ' past' : (d === today ? ' today' : ''));
     html += `<div class="${cls}"><div class="cal-num">${d}</div>${items.join('')}<div class="cal-dot-container">${dots}</div></div>`;
@@ -630,32 +738,65 @@ function renderCalendar() {
   document.getElementById('calendar-body').innerHTML = html;
 }
 
-let trendChart, doughnutChart;
+let trendChart, doughnutChart, wealthChart;
 function renderCharts() {
   if(!document.getElementById('page-stats').classList.contains('active')) return;
   
-  // Son 14 Gün Verileri
+  // 1. Varlık Geçmişi (Net Worth)
+  const wLabels = []; const wAssets = []; const wDebts = []; const wNet = [];
+  state.wealthHistory.forEach(h => {
+    const d = new Date(h.date);
+    wLabels.push(d.toLocaleDateString('tr-TR', { day:'2-digit', month:'2-digit', year:'2-digit' }));
+    wAssets.push(h.assets);
+    wDebts.push(h.debts);
+    wNet.push(h.net);
+  });
+  
+  if(wealthChart) wealthChart.destroy();
+  wealthChart = new Chart(document.getElementById('wealth-chart'), {
+    type: 'line',
+    data: {
+      labels: wLabels.length > 0 ? wLabels : ['Veri Yok'],
+      datasets: [
+        { label: 'Net Varlık', data: wNet.length > 0 ? wNet : [0], borderColor: '#8b93ff', backgroundColor: 'rgba(139, 147, 255, 0.2)', fill: true, tension: 0.1 },
+        { label: 'Toplam Varlık', data: wAssets.length > 0 ? wAssets : [0], borderColor: '#1D9E75', borderDash: [5, 5], tension: 0.1 },
+        { label: 'Toplam Borç', data: wDebts.length > 0 ? wDebts : [0], borderColor: '#e0715e', borderDash: [5, 5], tension: 0.1 }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales: { y: { grid: {color: '#2b2f3a'} } } }
+  });
+
+  // 2. Harcama ve Hedef Trendi (Filtreli)
+  const filterDays = parseInt(document.getElementById('chart-time-filter').value);
   const labels = []; const expData = []; const timeData = [];
-  for(let i=13; i>=0; i--) {
-    const d = new Date(); d.setDate(d.getDate() - i);
-    const ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-    labels.push(d.toLocaleDateString('tr-TR', { day:'2-digit', month:'2-digit' }));
-    
-    let eSum = 0; state.expenses.filter(e => e.date.startsWith(ds)).forEach(e => eSum += e.amount);
-    expData.push(eSum);
-    
-    let tSum = 0; state.habitLogs.filter(l => l.date === ds && l.type === 'time').forEach(l => tSum += l.value);
-    timeData.push(tSum);
+  
+  if (filterDays <= 30) {
+    for(let i=filterDays-1; i>=0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      labels.push(d.toLocaleDateString('tr-TR', { day:'2-digit', month:'2-digit' }));
+      
+      let eSum = 0; state.expenses.filter(e => e.date.startsWith(ds)).forEach(e => eSum += e.amount); expData.push(eSum);
+      let tSum = 0; state.habitLogs.filter(l => l.date === ds && l.type === 'time').forEach(l => tSum += l.value); timeData.push(tSum);
+    }
+  } else {
+    const monthNames = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+    const curYear = new Date().getFullYear().toString();
+    for (let i = 0; i < 12; i++) {
+      labels.push(monthNames[i]);
+      let eSum = 0; state.expenses.filter(e => e.date.startsWith(`${curYear}-${String(i+1).padStart(2,'0')}`)).forEach(e => eSum += e.amount); expData.push(eSum);
+      let tSum = 0; state.habitLogs.filter(l => l.date.startsWith(`${curYear}-${String(i+1).padStart(2,'0')}`) && l.type === 'time').forEach(l => tSum += l.value); timeData.push(tSum);
+    }
   }
 
   if(trendChart) trendChart.destroy();
   trendChart = new Chart(document.getElementById('trend-chart'), {
-    type: 'line',
+    type: 'bar',
     data: {
       labels: labels,
       datasets: [
-        { label: 'Süre (Dk)', data: timeData, borderColor: '#1D9E75', backgroundColor: 'rgba(29, 158, 117, 0.1)', fill: true, tension: 0.3, yAxisID: 'y' },
-        { label: 'Harcama (₺)', data: expData, borderColor: '#e0715e', borderDash: [5, 5], tension: 0.3, yAxisID: 'y1' }
+        { label: 'Süre (Dk)', data: timeData, type: 'line', borderColor: '#1D9E75', backgroundColor: 'rgba(29, 158, 117, 0.1)', fill: true, tension: 0.3, yAxisID: 'y' },
+        { label: 'Harcama (₺)', data: expData, backgroundColor: '#e0715e', borderRadius: 4, yAxisID: 'y1' }
       ]
     },
     options: { responsive: true, maintainAspectRatio: false, scales: {
@@ -664,28 +805,39 @@ function renderCharts() {
     }}
   });
 
-  // Kategori Dağılımı (Doughnut)
-  const catSums = {};
+  // 3. Kategori Dağılımı
+  let catSums = {};
   state.expenses.forEach(e => {
-    const cName = state.categories.find(c=>c.id===e.catId)?.name || 'Kategorisiz';
-    catSums[cName] = (catSums[cName] || 0) + e.amount;
+    let include = false;
+    if (filterDays <= 30) {
+      const d = new Date(); d.setDate(d.getDate() - filterDays);
+      if(new Date(e.date) >= d) include = true;
+    } else {
+      if(new Date(e.date).getFullYear() === new Date().getFullYear()) include = true;
+    }
+    
+    if(include) {
+      const cName = state.categories.find(c=>c.id===e.catId)?.name || 'Kategorisiz';
+      catSums[cName] = (catSums[cName] || 0) + e.amount;
+    }
   });
   
   if(doughnutChart) doughnutChart.destroy();
-  doughnutChart = new Chart(document.getElementById('doughnut-chart'), {
-    type: 'doughnut',
-    data: {
-      labels: Object.keys(catSums),
-      datasets: [{ data: Object.values(catSums), backgroundColor: ['#e0a95e', '#e0715e', '#8b93ff', '#1D9E75', '#9aa1b0', '#EF9F27'] }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels:{color:'#eceef2'} } } }
-  });
+  const cLabels = Object.keys(catSums);
+  if(cLabels.length > 0) {
+    doughnutChart = new Chart(document.getElementById('doughnut-chart'), {
+      type: 'doughnut',
+      data: { labels: cLabels, datasets: [{ data: Object.values(catSums), backgroundColor: ['#e0a95e', '#e0715e', '#8b93ff', '#1D9E75', '#9aa1b0', '#EF9F27'] }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels:{color:'#eceef2'} } } }
+    });
+  }
 }
 
 function refresh() {
   renderDropdowns();
   renderManageLists();
   renderHabitsPage();
+  if(document.getElementById('page-wealth').classList.contains('active')) renderWealthPage();
   renderDashboard();
   if(document.getElementById('page-calendar').classList.contains('active')) renderCalendar();
   if(document.getElementById('page-stats').classList.contains('active')) renderCharts();
@@ -715,7 +867,7 @@ function importData(ev){
 }
 function resetData(){
   if(!confirm('Tüm veriler silinecek. Emin misiniz?')) return;
-  state = { categories: [], expenses: [], ccReminders: [], fixedPayments: [], habits: [], habitLogs: [] };
+  state = { categories: [], expenses: [], ccReminders: [], fixedPayments: [], habits: [], habitLogs: [], wealthItems: [], wealthHistory: [] };
   saveState(); refresh();
 }
 
