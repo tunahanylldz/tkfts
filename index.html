@@ -98,6 +98,9 @@ label { font-size: 13px; font-weight: 500; color: var(--text-dim); margin-bottom
 .chart-wrap { position: relative; width: 100%; height: 260px; margin-top: 12px; }
 .filter-bar { display:flex; gap:10px; margin-bottom:15px; align-items:center; }
 .filter-bar select { width: auto; min-width: 150px; padding: 6px 12px; }
+
+/* Buton Grupları */
+.action-btns { display:flex; gap:6px; margin-left:8px; }
 </style>
 </head>
 <body>
@@ -337,14 +340,13 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const docRef = db.collection("tkfts_users").doc("tunahan_data");
 
-// state object (Genişletildi - Varlıklar Eklendi)
+// state object
 let state = { 
   categories: [], expenses: [], ccReminders: [], fixedPayments: [], 
   habits: [], habitLogs: [], 
   wealthItems: [], wealthHistory: [] 
 };
 
-// Tarih fonksiyonları
 function getISO(d){ return d.toISOString(); }
 function d2s(d){ return new Date(d).toLocaleDateString('tr-TR'); }
 function todayStr(){ 
@@ -377,7 +379,6 @@ async function loadState() {
       if (local) state = JSON.parse(local);
     }
     
-    // Güvenlik kontrolleri (Eski verileri bozmamak için)
     if(!state.ccReminders) state.ccReminders = [];
     if(!state.fixedPayments) state.fixedPayments = [];
     if(!state.categories) state.categories = [];
@@ -432,7 +433,6 @@ function updateWealthHistory() {
   });
   const netWorth = totalAsset - totalDebt;
 
-  // Aynı güne ait kayıt varsa güncelle, yoksa yeni kayıt ekle
   const existingLogIndex = state.wealthHistory.findIndex(h => h.date === tStr);
   if(existingLogIndex >= 0) {
     state.wealthHistory[existingLogIndex] = { date: tStr, assets: totalAsset, debts: totalDebt, net: netWorth };
@@ -440,7 +440,6 @@ function updateWealthHistory() {
     state.wealthHistory.push({ date: tStr, assets: totalAsset, debts: totalDebt, net: netWorth });
   }
   
-  // Tarihe göre sırala
   state.wealthHistory.sort((a,b) => new Date(a.date) - new Date(b.date));
 }
 
@@ -458,6 +457,26 @@ function addWealthItem(type) {
   
   updateWealthHistory();
   saveState(); refresh();
+}
+
+// YENİ: Varlık ve Borç Güncelleme Fonksiyonu
+function editWealthItem(id) {
+  const item = state.wealthItems.find(i => i.id === id);
+  if(!item) return;
+  
+  const newAmountStr = prompt(`"${item.name}" için yeni tutarı girin (₺):`, item.amount);
+  if(newAmountStr === null) return; // İptal edildi
+  
+  const newAmount = parseFloat(newAmountStr);
+  if(isNaN(newAmount) || newAmount < 0) return alert('Lütfen geçerli pozitif bir sayı giriniz.');
+  
+  item.amount = newAmount;
+  
+  // Sadece bugünün toplamını ve gelecekteki verileri günceller.
+  // Geçmişteki wealthHistory grafikleri olduğu gibi kalır.
+  updateWealthHistory();
+  saveState(); 
+  refresh();
 }
 
 function deleteWealthItem(id) {
@@ -480,14 +499,20 @@ function renderWealthPage() {
     totalAssets += a.amount;
     return `<div class="log-row"><div class="log-info"><span class="log-cat" style="color:var(--green)">${a.name}</span></div>
     <div class="log-right"><div class="log-amt">₺${a.amount.toFixed(2)}</div></div>
-    <button class="btn btn-danger" style="padding:4px 8px;font-size:11px;margin-left:8px;" onclick="deleteWealthItem(${a.id})">Sil</button></div>`;
+    <div class="action-btns">
+      <button class="btn btn-primary" style="padding:4px 8px;font-size:11px;" onclick="editWealthItem(${a.id})">Güncelle</button>
+      <button class="btn btn-danger" style="padding:4px 8px;font-size:11px;" onclick="deleteWealthItem(${a.id})">Sil</button>
+    </div></div>`;
   }).join('') || '<div class="empty">Kayıtlı varlık bulunmuyor.</div>';
 
   debtList.innerHTML = debts.map(d => {
     totalDebts += d.amount;
     return `<div class="log-row"><div class="log-info"><span class="log-cat" style="color:var(--red)">${d.name}</span></div>
     <div class="log-right"><div class="log-amt">₺${d.amount.toFixed(2)}</div></div>
-    <button class="btn btn-danger" style="padding:4px 8px;font-size:11px;margin-left:8px;" onclick="deleteWealthItem(${d.id})">Sil</button></div>`;
+    <div class="action-btns">
+      <button class="btn btn-primary" style="padding:4px 8px;font-size:11px;" onclick="editWealthItem(${d.id})">Güncelle</button>
+      <button class="btn btn-danger" style="padding:4px 8px;font-size:11px;" onclick="deleteWealthItem(${d.id})">Sil</button>
+    </div></div>`;
   }).join('') || '<div class="empty">Kayıtlı borç bulunmuyor.</div>';
 
   const netWorth = totalAssets - totalDebts;
@@ -499,7 +524,7 @@ function renderWealthPage() {
 }
 
 // ==========================================
-// 4. FİNANS FONKSİYONLARI (Aynı)
+// 4. FİNANS FONKSİYONLARI
 // ==========================================
 function addCategory(){
   const name = document.getElementById('cat-name').value.trim();
@@ -564,7 +589,7 @@ function addFixedPayment() {
 function deleteFixed(id) { state.fixedPayments = state.fixedPayments.filter(r => r.id !== id); saveState(); refresh(); }
 
 // ==========================================
-// 5. ZAMAN VE HEDEF (HABIT) FONKSİYONLARI (Aynı)
+// 5. ZAMAN VE HEDEF (HABIT) FONKSİYONLARI
 // ==========================================
 function addHabit() {
   const name = document.getElementById('habit-name').value.trim();
